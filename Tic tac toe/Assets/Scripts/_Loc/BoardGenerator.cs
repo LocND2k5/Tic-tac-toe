@@ -44,7 +44,10 @@ public class BoardGenerator : MonoBehaviour
         }
         
         float lineLength = size * spacing;
-        float lineThickness = 1.0f * scaleMultiplier; // Adjust thickness based on original sprite
+        float lineThickness = 0.5f * scaleMultiplier; // Make it a bit thicker so it's clearly visible
+
+        float spriteWidth = lineSprite.bounds.size.x;
+        float spriteHeight = lineSprite.bounds.size.y;
 
         // Vertical lines
         for (int i = 1; i < size; i++)
@@ -57,7 +60,12 @@ public class BoardGenerator : MonoBehaviour
             
             SpriteRenderer sr = lineGo.AddComponent<SpriteRenderer>();
             sr.sprite = lineSprite;
-            lineGo.transform.localScale = new Vector3(lineThickness, lineLength / 3.1f, 1); 
+            sr.sortingLayerName = "Line";
+            
+            // Sprite is horizontal. To make it vertical, rotate 90 degrees.
+            lineGo.transform.rotation = Quaternion.Euler(0, 0, 90);
+            // Scale X affects length (because it's horizontally drawn), Scale Y affects thickness
+            lineGo.transform.localScale = new Vector3(lineLength / spriteWidth, lineThickness / spriteHeight, 1); 
         }
 
         // Horizontal lines
@@ -71,9 +79,11 @@ public class BoardGenerator : MonoBehaviour
             
             SpriteRenderer sr = lineGo.AddComponent<SpriteRenderer>();
             sr.sprite = lineSprite;
-            // Note: Horizontal line is rotated 90 degrees
-            lineGo.transform.rotation = Quaternion.Euler(0, 0, 90);
-            lineGo.transform.localScale = new Vector3(lineThickness, lineLength / 3.1f, 1); 
+            sr.sortingLayerName = "Line";
+            
+            // Sprite is already horizontal. No rotation needed.
+            lineGo.transform.rotation = Quaternion.Euler(0, 0, 0);
+            lineGo.transform.localScale = new Vector3(lineLength / spriteWidth, lineThickness / spriteHeight, 1); 
         }
     }
 }
