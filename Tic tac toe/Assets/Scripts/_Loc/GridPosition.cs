@@ -8,6 +8,12 @@ public class GridPosition : MonoBehaviour, IPointerClickHandler
     [SerializeField] private int x;
     [SerializeField] private int y;
 
+    public void SetPosition(int newX, int newY)
+    {
+        this.x = newX;
+        this.y = newY;
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button != PointerEventData.InputButton.Left) return;

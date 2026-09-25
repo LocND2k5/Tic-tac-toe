@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class GameVisualManager : MonoBehaviour
 {
-    private const float GRID_SIZE = 3.1f;
-
     [SerializeField] private Transform crossPrefab;
     [SerializeField] private Transform circlePrefab;
     [SerializeField] private Transform lineCompletePrefab;
@@ -41,6 +39,10 @@ public class GameVisualManager : MonoBehaviour
     {
         Transform prefab = (e.playerType == GameManager.PlayerType.Cross) ? crossPrefab : circlePrefab;
         Transform spawnedTransform = Instantiate(prefab, GetWorldPosition(e.x, e.y), Quaternion.identity);
+        
+        float scaleMultiplier = 3f / GameManager.Instance.boardSize;
+        spawnedTransform.localScale = Vector3.one * scaleMultiplier;
+
         visualGameObjectList.Add(spawnedTransform.gameObject);
     }
 
@@ -70,6 +72,12 @@ public class GameVisualManager : MonoBehaviour
             GetWorldPosition(e.line.centerGridPosition.x, e.line.centerGridPosition.y),
             Quaternion.Euler(0f, 0f, eulerZ)
         );
+
+        // Calculate custom scale based on board size and win condition length
+        float scaleMultiplier = 3f / GameManager.Instance.boardSize;
+        float winConditionRatio = (float)GameManager.Instance.winCondition / 3f;
+        lineCompleteTransform.localScale = new Vector3(scaleMultiplier * winConditionRatio, scaleMultiplier, 1f);
+
         visualGameObjectList.Add(lineCompleteTransform.gameObject);
     }
 
@@ -82,14 +90,8 @@ public class GameVisualManager : MonoBehaviour
                 if (visualGo != null)
                 {
 #if UNITY_EDITOR
-                    if (!Application.isPlaying)
-                    {
-                        DestroyImmediate(visualGo);
-                    }
-                    else
-                    {
-                        Destroy(visualGo);
-                    }
+                    if (!Application.isPlaying) DestroyImmediate(visualGo);
+                    else Destroy(visualGo);
 #else
                     Destroy(visualGo);
 #endif
@@ -101,6 +103,14 @@ public class GameVisualManager : MonoBehaviour
 
     private Vector2 GetWorldPosition(int x, int y)
     {
-        return new Vector2(-GRID_SIZE + x * GRID_SIZE, -GRID_SIZE + y * GRID_SIZE);
+        int size = GameManager.Instance.boardSize;
+        float baseSpacing = 3.1f;
+        float scaleMultiplier = 3f / size;
+        float spacing = baseSpacing * scaleMultiplier;
+
+        float posX = -((size - 1) * spacing / 2f) + x * spacing;
+        float posY = -((size - 1) * spacing / 2f) + y * spacing;
+        
+        return new Vector2(posX, posY);
     }
 }
