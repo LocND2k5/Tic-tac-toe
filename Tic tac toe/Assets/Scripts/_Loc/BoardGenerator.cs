@@ -2,7 +2,14 @@ using UnityEngine;
 
 public class BoardGenerator : MonoBehaviour
 {
+    public static BoardGenerator Instance { get; private set; }
+
     [SerializeField] private Sprite lineSprite; // Assign your Line.png here
+
+    private void Awake()
+    {
+        Instance = this;
+    }
     
     private void Start()
     {
@@ -11,7 +18,13 @@ public class BoardGenerator : MonoBehaviour
 
     public void GenerateGrid()
     {
-        int size = GameManager.Instance.boardSize;
+        // Clean up previous children if any to support dynamic regeneration
+        for (int i = transform.childCount - 1; i >= 0; i--)
+        {
+            Destroy(transform.GetChild(i).gameObject);
+        }
+
+        int size = GameManager.Instance != null ? GameManager.Instance.boardSize : 3;
         float baseSpacing = 3.1f;
         float scaleMultiplier = 3f / size; // Scale down for larger boards so it fits screen
         float spacing = baseSpacing * scaleMultiplier;

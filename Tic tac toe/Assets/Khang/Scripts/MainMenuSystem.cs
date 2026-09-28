@@ -100,11 +100,9 @@ namespace Khang
             if (size3x3Button)
                 size3x3Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 3).Execute());
             
-            if (size5x5Button)
-                size5x5Button.onClick.AddListener(() => Debug.Log("Tính năng bàn cờ 5x5 đang được phát triển!"));
+            if (size5x5Button) size5x5Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 5).Execute());
                 
-            if (size7x7Button)
-                size7x7Button.onClick.AddListener(() => Debug.Log("Tính năng bàn cờ 7x7 đang được phát triển!"));
+            if (size7x7Button) size7x7Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 7).Execute());
 
             // 6. Các nút Back để quay về Main Menu
             foreach (var btn in backToMainButtons)

@@ -50,15 +50,16 @@ public class GameTurnUI : MonoBehaviour
             circleArrow.SetActive(currentPlayerType == GameManager.PlayerType.Circle);
         }
 
-        // Move the "YOU" text
+        // Position the "YOU" text badge to clearly identify local player role
         if (youTextRect != null)
         {
             Vector2 currentPos = youTextRect.anchoredPosition;
-            if (currentPlayerType == GameManager.PlayerType.Cross)
+            GameManager.PlayerType localPlayer = GameManager.Instance.GetLocalPlayerType();
+            if (localPlayer == GameManager.PlayerType.Cross)
             {
                 currentPos.x = crossYouPosX;
             }
-            else if (currentPlayerType == GameManager.PlayerType.Circle)
+            else if (localPlayer == GameManager.PlayerType.Circle)
             {
                 currentPos.x = circleYouPosX;
             }
