@@ -73,31 +73,40 @@ namespace Khang
 
         private void SetupButtons()
         {
-            // 1. Nút ở màn hình chính chuyển sang các màn hình phụ
+            // 1. Nút Play Local: Mở bảng chọn kích thước bàn cờ (Grid Size)
             if (playLocalButton)
+            {
                 playLocalButton.onClick.AddListener(() => new ChangeStateCommand(this, stateGridSize).Execute());
-            
+            }
+
+            // 2. Nút Play AI: Hiện tại chưa có AI, tạm thời báo log
+            if (playAIButton)
+            {
+                playAIButton.onClick.AddListener(() => 
+                {
+                    Debug.Log("Chế độ chơi với Máy (AI) đang được phát triển!");
+                });
+            }
+
+            // 3. Nút Play Online: Mở bảng Multiplayer
             if (playOnlineButton)
                 playOnlineButton.onClick.AddListener(() => new ChangeStateCommand(this, stateMultiplayer).Execute());
             
+            // 4. Nút Settings
             if (openSettingsButton)
                 openSettingsButton.onClick.AddListener(() => new ChangeStateCommand(this, stateSettings).Execute());
 
-            if (playAIButton)
-            {
-                // Giả sử AI tạm thời chọn mặc định 3x3 và vào game luôn
-                playAIButton.onClick.AddListener(() => new StartMatchCommand(GameMode.AI, 3).Execute());
-            }
-
-            // 2. Nút chọn Grid Size (Local)
+            // 5. Nút chọn Grid Size (Dành cho sau này nếu cần)
             if (size3x3Button)
                 size3x3Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 3).Execute());
+            
             if (size5x5Button)
-                size5x5Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 5).Execute());
+                size5x5Button.onClick.AddListener(() => Debug.Log("Tính năng bàn cờ 5x5 đang được phát triển!"));
+                
             if (size7x7Button)
-                size7x7Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 7).Execute());
+                size7x7Button.onClick.AddListener(() => Debug.Log("Tính năng bàn cờ 7x7 đang được phát triển!"));
 
-            // 3. Các nút Back để quay về Main Menu
+            // 6. Các nút Back để quay về Main Menu
             foreach (var btn in backToMainButtons)
             {
                 if (btn != null)
