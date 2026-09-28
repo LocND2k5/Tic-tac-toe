@@ -753,6 +753,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90966a081c5b5044c95b8974f6aaf194, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
+  availableConfigs:
+  - configName: 3*3
+    size: 3
+    winCondition: 3
+  - configName: '5*5 '
+    size: 5
+    winCondition: 4
+  - configName: 7*7
+    size: 7
+    winCondition: 5
   boardSize: 3
   winCondition: 3
 --- !u!4 &933301795

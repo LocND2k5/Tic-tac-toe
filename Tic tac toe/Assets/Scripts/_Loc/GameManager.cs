@@ -43,12 +43,23 @@ public class GameManager : MonoBehaviour
     public struct Line
     {
         public List<Vector2Int> gridVector2IntList;
-        public Vector2Int centerGridPosition;
+        public Vector2 centerGridPosition;
         public Orientation orientation;
     }
 
-    public int boardSize = 3;
-    public int winCondition = 3;
+    [System.Serializable]
+    public struct BoardConfig
+    {
+        public string configName; // Tên hiển thị cho dễ nhìn (VD: "Mức 3x3")
+        public int size;          // Kích thước thật (VD: 3)
+        public int winCondition;  // Cần bao nhiêu ô để thắng (VD: 3)
+    }
+
+    [Header("Cài đặt các loại Bàn cờ (Board Setups)")]
+    public BoardConfig[] availableConfigs;
+
+    [HideInInspector] public int boardSize = 3;
+    [HideInInspector] public int winCondition = 3;
 
     private PlayerType[,] playerTypeArray;
     private PlayerType currentPlayablePlayerType;
@@ -63,19 +74,35 @@ public class GameManager : MonoBehaviour
         }
         Instance = this;
 
-        // Try to read from MainMenuUI if set
-        if (MainMenuUI.SelectedBoardSize >= 3)
-        {
-            boardSize = MainMenuUI.SelectedBoardSize;
-        }
-
         Init();
     }
 
     public void Init()
     {
-        if (boardSize < 3) boardSize = 3;
-        winCondition = boardSize == 3 ? 3 : (boardSize == 5 ? 4 : 5); // Example: 3x3=3, 5x5=4, 7x7=5
+        int targetSize = MainMenuUI.SelectedBoardSize;
+        bool foundConfig = false;
+
+        // Quét danh sách cài đặt trên Inspector để tìm cấu hình tương ứng
+        if (availableConfigs != null)
+        {
+            foreach (BoardConfig config in availableConfigs)
+            {
+                if (config.size == targetSize)
+                {
+                    boardSize = config.size;
+                    winCondition = config.winCondition;
+                    foundConfig = true;
+                    break;
+                }
+            }
+        }
+
+        // Nếu bạn chưa cài đặt trên Inspector, tự động tính toán (Dự phòng an toàn)
+        if (!foundConfig)
+        {
+            boardSize = targetSize < 3 ? 3 : targetSize;
+            winCondition = boardSize == 3 ? 3 : (boardSize == 5 ? 4 : 5);
+        }
 
         playerTypeArray = new PlayerType[boardSize, boardSize];
         currentPlayablePlayerType = PlayerType.Cross;
@@ -95,7 +122,9 @@ public class GameManager : MonoBehaviour
             {
                 Line line = new Line { gridVector2IntList = new List<Vector2Int>(), orientation = Orientation.Horizontal };
                 for (int i = 0; i < winCondition; i++) line.gridVector2IntList.Add(new Vector2Int(x + i, y));
-                line.centerGridPosition = line.gridVector2IntList[winCondition / 2];
+                Vector2Int first = line.gridVector2IntList[0];
+                Vector2Int last = line.gridVector2IntList[winCondition - 1];
+                line.centerGridPosition = new Vector2((first.x + last.x) / 2f, (first.y + last.y) / 2f);
                 lineList.Add(line);
             }
         }
@@ -107,7 +136,9 @@ public class GameManager : MonoBehaviour
             {
                 Line line = new Line { gridVector2IntList = new List<Vector2Int>(), orientation = Orientation.Vertical };
                 for (int i = 0; i < winCondition; i++) line.gridVector2IntList.Add(new Vector2Int(x, y + i));
-                line.centerGridPosition = line.gridVector2IntList[winCondition / 2];
+                Vector2Int first = line.gridVector2IntList[0];
+                Vector2Int last = line.gridVector2IntList[winCondition - 1];
+                line.centerGridPosition = new Vector2((first.x + last.x) / 2f, (first.y + last.y) / 2f);
                 lineList.Add(line);
             }
         }
@@ -119,7 +150,9 @@ public class GameManager : MonoBehaviour
             {
                 Line line = new Line { gridVector2IntList = new List<Vector2Int>(), orientation = Orientation.DiagonalA };
                 for (int i = 0; i < winCondition; i++) line.gridVector2IntList.Add(new Vector2Int(x + i, y + i));
-                line.centerGridPosition = line.gridVector2IntList[winCondition / 2];
+                Vector2Int first = line.gridVector2IntList[0];
+                Vector2Int last = line.gridVector2IntList[winCondition - 1];
+                line.centerGridPosition = new Vector2((first.x + last.x) / 2f, (first.y + last.y) / 2f);
                 lineList.Add(line);
             }
         }
@@ -131,7 +164,9 @@ public class GameManager : MonoBehaviour
             {
                 Line line = new Line { gridVector2IntList = new List<Vector2Int>(), orientation = Orientation.DiagonalB };
                 for (int i = 0; i < winCondition; i++) line.gridVector2IntList.Add(new Vector2Int(x + i, y - i));
-                line.centerGridPosition = line.gridVector2IntList[winCondition / 2];
+                Vector2Int first = line.gridVector2IntList[0];
+                Vector2Int last = line.gridVector2IntList[winCondition - 1];
+                line.centerGridPosition = new Vector2((first.x + last.x) / 2f, (first.y + last.y) / 2f);
                 lineList.Add(line);
             }
         }
