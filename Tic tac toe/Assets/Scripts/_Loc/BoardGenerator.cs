@@ -11,7 +11,7 @@ public class BoardGenerator : MonoBehaviour
 
     public void GenerateGrid()
     {
-        int size = GameManager.Instance.boardSize;
+        int size = GameLocator.GetBoardVisualProvider().BoardSize;
         float baseSpacing = 3.1f;
         float scaleMultiplier = 3f / size; // Scale down for larger boards so it fits screen
         float spacing = baseSpacing * scaleMultiplier;

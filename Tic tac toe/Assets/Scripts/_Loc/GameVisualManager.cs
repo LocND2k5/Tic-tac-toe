@@ -20,49 +20,49 @@ public class GameVisualManager : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.OnClickedOnGridPosition += GameManager_OnClickedOnGridPosition;
-        GameManager.Instance.OnGameWin += GameManager_OnGameWin;
-        GameManager.Instance.OnRematch += GameManager_OnRematch;
+        GameLocator.GetBoardVisualProvider().OnClickedOnGridPosition += GameManager_OnClickedOnGridPosition;
+        GameLocator.GetBoardVisualProvider().OnGameWin += GameManager_OnGameWin;
+        GameLocator.GetBoardVisualProvider().OnRematch += GameManager_OnRematch;
     }
 
     private void OnDestroy()
     {
-        if (GameManager.Instance != null)
+        if (GameLocator.GetBoardVisualProvider() != null)
         {
-            GameManager.Instance.OnClickedOnGridPosition -= GameManager_OnClickedOnGridPosition;
-            GameManager.Instance.OnGameWin -= GameManager_OnGameWin;
-            GameManager.Instance.OnRematch -= GameManager_OnRematch;
+            GameLocator.GetBoardVisualProvider().OnClickedOnGridPosition -= GameManager_OnClickedOnGridPosition;
+            GameLocator.GetBoardVisualProvider().OnGameWin -= GameManager_OnGameWin;
+            GameLocator.GetBoardVisualProvider().OnRematch -= GameManager_OnRematch;
         }
     }
 
-    private void GameManager_OnClickedOnGridPosition(object sender, GameManager.OnClickedOnGridPositionEventArgs e)
+    private void GameManager_OnClickedOnGridPosition(object sender, OnClickedOnGridPositionEventArgs e)
     {
-        Transform prefab = (e.playerType == GameManager.PlayerType.Cross) ? crossPrefab : circlePrefab;
+        Transform prefab = (e.playerType == PlayerType.Cross) ? crossPrefab : circlePrefab;
         Transform spawnedTransform = Instantiate(prefab, GetWorldPosition(e.x, e.y), Quaternion.identity);
         
-        float scaleMultiplier = 3f / GameManager.Instance.boardSize;
+        float scaleMultiplier = 3f / GameLocator.GetBoardVisualProvider().BoardSize;
         spawnedTransform.localScale = prefab.localScale * scaleMultiplier;
 
         visualGameObjectList.Add(spawnedTransform.gameObject);
     }
 
-    private void GameManager_OnGameWin(object sender, GameManager.OnGameWinEventArgs e)
+    private void GameManager_OnGameWin(object sender, OnGameWinEventArgs e)
     {
         if (lineCompletePrefab == null) return;
 
         float eulerZ = 0f;
         switch (e.line.orientation)
         {
-            case GameManager.Orientation.Horizontal:
+            case Orientation.Horizontal:
                 eulerZ = 0f;
                 break;
-            case GameManager.Orientation.Vertical:
+            case Orientation.Vertical:
                 eulerZ = 90f;
                 break;
-            case GameManager.Orientation.DiagonalA:
+            case Orientation.DiagonalA:
                 eulerZ = 45f;
                 break;
-            case GameManager.Orientation.DiagonalB:
+            case Orientation.DiagonalB:
                 eulerZ = -45f;
                 break;
         }
@@ -77,8 +77,8 @@ public class GameVisualManager : MonoBehaviour
         Vector3 originalScale = lineCompletePrefab.localScale;
 
         // Calculate custom scale based on board size and win condition length
-        float scaleMultiplier = 3f / GameManager.Instance.boardSize;
-        float winConditionRatio = (float)GameManager.Instance.winCondition / 3f;
+        float scaleMultiplier = 3f / GameLocator.GetBoardVisualProvider().BoardSize;
+        float winConditionRatio = (float)GameLocator.GetBoardVisualProvider().WinCondition / 3f;
         
         // Tùy chỉnh độ dài và độ rõ (dày) theo yêu cầu
         float lengthBoost = 1.15f;    // Dài hơn 15%
@@ -87,7 +87,7 @@ public class GameVisualManager : MonoBehaviour
         // Xử lý sự khác biệt hình học: Cạnh góc vuông luôn ngắn hơn cạnh huyền (đường chéo)
         // Prefab gốc của bạn có vẻ được thiết kế cho đường chéo, nên khi dùng cho đường ngang/dọc nó bị dư ra.
         float orientationMultiplier = 1f;
-        if (e.line.orientation == GameManager.Orientation.Horizontal || e.line.orientation == GameManager.Orientation.Vertical)
+        if (e.line.orientation == Orientation.Horizontal || e.line.orientation == Orientation.Vertical)
         {
             orientationMultiplier = 1f / Mathf.Sqrt(2f); // Thu ngắn lại theo tỷ lệ cạnh góc vuông / cạnh huyền (~0.707)
         }
@@ -134,7 +134,7 @@ public class GameVisualManager : MonoBehaviour
 
     private Vector2 GetWorldPosition(float x, float y)
     {
-        int size = GameManager.Instance.boardSize;
+        int size = GameLocator.GetBoardVisualProvider().BoardSize;
         float baseSpacing = 3.1f;
         float scaleMultiplier = 3f / size;
         float spacing = baseSpacing * scaleMultiplier;

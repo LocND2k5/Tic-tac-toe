@@ -14,18 +14,18 @@ public class GameTurnUI : MonoBehaviour
 
     private void Start()
     {
-        GameManager.Instance.OnCurrentPlayablePlayerTypeChanged += GameManager_OnCurrentPlayablePlayerTypeChanged;
-        GameManager.Instance.OnRematch += GameManager_OnRematch;
+        GameLocator.GetTurnProvider().OnCurrentPlayablePlayerTypeChanged += GameManager_OnCurrentPlayablePlayerTypeChanged;
+        GameLocator.GetTurnProvider().OnRematch += GameManager_OnRematch;
 
         UpdateTurnUI();
     }
 
     private void OnDestroy()
     {
-        if (GameManager.Instance != null)
+        if (GameLocator.GetTurnProvider() != null)
         {
-            GameManager.Instance.OnCurrentPlayablePlayerTypeChanged -= GameManager_OnCurrentPlayablePlayerTypeChanged;
-            GameManager.Instance.OnRematch -= GameManager_OnRematch;
+            GameLocator.GetTurnProvider().OnCurrentPlayablePlayerTypeChanged -= GameManager_OnCurrentPlayablePlayerTypeChanged;
+            GameLocator.GetTurnProvider().OnRematch -= GameManager_OnRematch;
         }
     }
 
@@ -41,24 +41,24 @@ public class GameTurnUI : MonoBehaviour
 
     private void UpdateTurnUI()
     {
-        GameManager.PlayerType currentPlayerType = GameManager.Instance.GetCurrentPlayablePlayerType();
+        PlayerType currentPlayerType = GameLocator.GetTurnProvider().GetCurrentPlayablePlayerType();
 
         // Toggling Active State of two arrows
         if (crossArrow != null && circleArrow != null)
         {
-            crossArrow.SetActive(currentPlayerType == GameManager.PlayerType.Cross);
-            circleArrow.SetActive(currentPlayerType == GameManager.PlayerType.Circle);
+            crossArrow.SetActive(currentPlayerType == PlayerType.Cross);
+            circleArrow.SetActive(currentPlayerType == PlayerType.Circle);
         }
 
         // Move the "YOU" text
         if (youTextRect != null)
         {
             Vector2 currentPos = youTextRect.anchoredPosition;
-            if (currentPlayerType == GameManager.PlayerType.Cross)
+            if (currentPlayerType == PlayerType.Cross)
             {
                 currentPos.x = crossYouPosX;
             }
-            else if (currentPlayerType == GameManager.PlayerType.Circle)
+            else if (currentPlayerType == PlayerType.Circle)
             {
                 currentPos.x = circleYouPosX;
             }

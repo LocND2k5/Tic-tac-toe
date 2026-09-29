@@ -17,31 +17,31 @@ public class RematchUI : MonoBehaviour
         {
             rematchButton.onClick.AddListener(() =>
             {
-                GameManager.Instance.Rematch();
+                GameLocator.GetGameStateProvider().Rematch();
             });
         }
     }
 
     private void Start()
     {
-        GameManager.Instance.OnGameWin += GameManager_OnGameWin;
-        GameManager.Instance.OnGameTied += GameManager_OnGameTied;
-        GameManager.Instance.OnRematch += GameManager_OnRematch;
+        GameLocator.GetGameStateProvider().OnGameWin += GameManager_OnGameWin;
+        GameLocator.GetGameStateProvider().OnGameTied += GameManager_OnGameTied;
+        GameLocator.GetGameStateProvider().OnRematch += GameManager_OnRematch;
 
         Hide();
     }
 
     private void OnDestroy()
     {
-        if (GameManager.Instance != null)
+        if (GameLocator.GetGameStateProvider() != null)
         {
-            GameManager.Instance.OnGameWin -= GameManager_OnGameWin;
-            GameManager.Instance.OnGameTied -= GameManager_OnGameTied;
-            GameManager.Instance.OnRematch -= GameManager_OnRematch;
+            GameLocator.GetGameStateProvider().OnGameWin -= GameManager_OnGameWin;
+            GameLocator.GetGameStateProvider().OnGameTied -= GameManager_OnGameTied;
+            GameLocator.GetGameStateProvider().OnRematch -= GameManager_OnRematch;
         }
     }
 
-    private void GameManager_OnGameWin(object sender, GameManager.OnGameWinEventArgs e)
+    private void GameManager_OnGameWin(object sender, OnGameWinEventArgs e)
     {
         Show();
     }

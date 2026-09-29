@@ -42,7 +42,7 @@ public class GridPosition : MonoBehaviour, IPointerClickHandler
     private void TriggerClick()
     {
         Debug.Log("Click! " + x + ", " + y);
-        GameManager.Instance.ClickedOnGridPosition(x, y);
+        GameLocator.GetGridInteractionProvider().ClickedOnGridPosition(x, y);
     }
 
     public int GetX() => x;

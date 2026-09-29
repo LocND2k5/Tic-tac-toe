@@ -4,7 +4,7 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Button))]
 public class LevelSelectButton : MonoBehaviour
 {
-    public int boardSize = 3;
+    public int boardSize;
 
     private void Start()
     {
