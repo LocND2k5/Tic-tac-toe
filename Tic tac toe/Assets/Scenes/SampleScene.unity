@@ -1306,7 +1306,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GameTurnUI
   crossArrow: {fileID: 404095154}
   circleArrow: {fileID: 1844207150}
-  youTextRect: {fileID: 0}
+  youTextRect: {fileID: 1678912600}
   crossYouPosX: 60
   circleYouPosX: -40
 --- !u!114 &1063923504
@@ -1547,7 +1547,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2

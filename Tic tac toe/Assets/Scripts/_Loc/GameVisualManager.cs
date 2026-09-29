@@ -84,7 +84,7 @@ public class GameVisualManager : MonoBehaviour
         float lengthBoost = 1.15f;    // Dài hơn 15%
         float thicknessBoost = 1.4f;  // Dày hơn 40% để nhìn rõ nét hơn
 
-        // Xử lý sự khác biệt hình học: Cạnh góc vuông luôn ngắn hơn cạnh huyền (đường chéo)
+        // Xử lý sự khác biệt hình học
         // Prefab gốc của bạn có vẻ được thiết kế cho đường chéo, nên khi dùng cho đường ngang/dọc nó bị dư ra.
         float orientationMultiplier = 1f;
         if (e.line.orientation == GameManager.Orientation.Horizontal || e.line.orientation == GameManager.Orientation.Vertical)
