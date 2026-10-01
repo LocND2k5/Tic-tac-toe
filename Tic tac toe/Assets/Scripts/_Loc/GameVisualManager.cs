@@ -41,7 +41,19 @@ public class GameVisualManager : MonoBehaviour
         Transform spawnedTransform = Instantiate(prefab, GetWorldPosition(e.x, e.y), Quaternion.identity);
         
         float scaleMultiplier = 3f / GameManager.Instance.boardSize;
-        spawnedTransform.localScale = prefab.localScale * scaleMultiplier;
+        
+        // --- Áp dụng Liskov Substitution Principle (LSP) ---
+        // Chúng ta tương tác với quân cờ thông qua Interface (Abstraction) thay vì cụ thể.
+        // Class con (CrossPiece, CirclePiece) tự quyết định cách nó phản hồi.
+        if (spawnedTransform.TryGetComponent<IGamePiece>(out IGamePiece gamePiece))
+        {
+            gamePiece.OnPlaced(scaleMultiplier);
+        }
+        else
+        {
+            // Fallback dự phòng trong trường hợp bạn chưa gắn script vào Prefab trong Unity
+            spawnedTransform.localScale = prefab.localScale * scaleMultiplier;
+        }
 
         visualGameObjectList.Add(spawnedTransform.gameObject);
     }
