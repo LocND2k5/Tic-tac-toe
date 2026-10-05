@@ -46,19 +46,12 @@ public class GameManager : NetworkBehaviour
         Circle
     }
 
-    public enum Orientation
-    {
-        Horizontal,
-        Vertical,
-        DiagonalA,
-        DiagonalB,
-    }
-
     public struct Line
     {
         public List<Vector2Int> gridVector2IntList;
         public Vector2 centerGridPosition;
-        public Orientation orientation;
+        public float rotationAngle;
+        public float lengthMultiplier;
     }
 
     [System.Serializable]
@@ -205,7 +198,7 @@ public class GameManager : NetworkBehaviour
         {
             for (int x = 0; x <= boardSize - winCondition; x++)
             {
-                Line line = new Line { gridVector2IntList = new List<Vector2Int>(), orientation = Orientation.Horizontal };
+                Line line = new Line { gridVector2IntList = new List<Vector2Int>(), rotationAngle = 0f, lengthMultiplier = 1f / Mathf.Sqrt(2f) };
                 for (int i = 0; i < winCondition; i++) line.gridVector2IntList.Add(new Vector2Int(x + i, y));
                 Vector2Int first = line.gridVector2IntList[0];
                 Vector2Int last = line.gridVector2IntList[winCondition - 1];
@@ -219,7 +212,7 @@ public class GameManager : NetworkBehaviour
         {
             for (int y = 0; y <= boardSize - winCondition; y++)
             {
-                Line line = new Line { gridVector2IntList = new List<Vector2Int>(), orientation = Orientation.Vertical };
+                Line line = new Line { gridVector2IntList = new List<Vector2Int>(), rotationAngle = 90f, lengthMultiplier = 1f / Mathf.Sqrt(2f) };
                 for (int i = 0; i < winCondition; i++) line.gridVector2IntList.Add(new Vector2Int(x, y + i));
                 Vector2Int first = line.gridVector2IntList[0];
                 Vector2Int last = line.gridVector2IntList[winCondition - 1];
@@ -233,7 +226,7 @@ public class GameManager : NetworkBehaviour
         {
             for (int y = 0; y <= boardSize - winCondition; y++)
             {
-                Line line = new Line { gridVector2IntList = new List<Vector2Int>(), orientation = Orientation.DiagonalA };
+                Line line = new Line { gridVector2IntList = new List<Vector2Int>(), rotationAngle = 45f, lengthMultiplier = 1f };
                 for (int i = 0; i < winCondition; i++) line.gridVector2IntList.Add(new Vector2Int(x + i, y + i));
                 Vector2Int first = line.gridVector2IntList[0];
                 Vector2Int last = line.gridVector2IntList[winCondition - 1];
@@ -247,7 +240,7 @@ public class GameManager : NetworkBehaviour
         {
             for (int y = winCondition - 1; y < boardSize; y++)
             {
-                Line line = new Line { gridVector2IntList = new List<Vector2Int>(), orientation = Orientation.DiagonalB };
+                Line line = new Line { gridVector2IntList = new List<Vector2Int>(), rotationAngle = -45f, lengthMultiplier = 1f };
                 for (int i = 0; i < winCondition; i++) line.gridVector2IntList.Add(new Vector2Int(x + i, y - i));
                 Vector2Int first = line.gridVector2IntList[0];
                 Vector2Int last = line.gridVector2IntList[winCondition - 1];
