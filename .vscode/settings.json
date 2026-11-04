@@ -1,5 +1,8 @@
 {
     "files.exclude": {
         "**/*.meta": true
-    }
+    },
+    "csharp-dev-tools.solutionViewer.selectedWorkspaceSolutions": [
+        "Tic tac toe/Tic tac toe.sln"
+    ]
 }
