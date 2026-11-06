@@ -41,7 +41,19 @@ public class GameVisualManager : MonoBehaviour
         Transform spawnedTransform = Instantiate(prefab, GetWorldPosition(e.x, e.y), Quaternion.identity);
         
         float scaleMultiplier = 3f / GameManager.Instance.boardSize;
-        spawnedTransform.localScale = prefab.localScale * scaleMultiplier;
+        
+        // --- Áp dụng Liskov Substitution Principle (LSP) ---
+        // Chúng ta tương tác với quân cờ thông qua Interface (Abstraction) thay vì cụ thể.
+        // Class con (CrossPiece, CirclePiece) tự quyết định cách nó phản hồi.
+        if (spawnedTransform.TryGetComponent<IGamePiece>(out IGamePiece gamePiece))
+        {
+            gamePiece.OnPlaced(scaleMultiplier);
+        }
+        else
+        {
+            // Fallback dự phòng trong trường hợp bạn chưa gắn script vào Prefab trong Unity
+            spawnedTransform.localScale = prefab.localScale * scaleMultiplier;
+        }
 
         visualGameObjectList.Add(spawnedTransform.gameObject);
     }
@@ -50,22 +62,7 @@ public class GameVisualManager : MonoBehaviour
     {
         if (lineCompletePrefab == null) return;
 
-        float eulerZ = 0f;
-        switch (e.line.orientation)
-        {
-            case GameManager.Orientation.Horizontal:
-                eulerZ = 0f;
-                break;
-            case GameManager.Orientation.Vertical:
-                eulerZ = 90f;
-                break;
-            case GameManager.Orientation.DiagonalA:
-                eulerZ = 45f;
-                break;
-            case GameManager.Orientation.DiagonalB:
-                eulerZ = -45f;
-                break;
-        }
+        float eulerZ = e.line.rotationAngle;
 
         Transform lineCompleteTransform = Instantiate(
             lineCompletePrefab,
@@ -84,13 +81,8 @@ public class GameVisualManager : MonoBehaviour
         float lengthBoost = 1.15f;    // Dài hơn 15%
         float thicknessBoost = 1.4f;  // Dày hơn 40% để nhìn rõ nét hơn
 
-        // Xử lý sự khác biệt hình học: Cạnh góc vuông luôn ngắn hơn cạnh huyền (đường chéo)
-        // Prefab gốc của bạn có vẻ được thiết kế cho đường chéo, nên khi dùng cho đường ngang/dọc nó bị dư ra.
-        float orientationMultiplier = 1f;
-        if (e.line.orientation == GameManager.Orientation.Horizontal || e.line.orientation == GameManager.Orientation.Vertical)
-        {
-            orientationMultiplier = 1f / Mathf.Sqrt(2f); // Thu ngắn lại theo tỷ lệ cạnh góc vuông / cạnh huyền (~0.707)
-        }
+        // Lấy tỷ lệ độ dài tùy chỉnh của loại đường thẳng này (OCP)
+        float orientationMultiplier = e.line.lengthMultiplier;
 
         lineCompleteTransform.localScale = new Vector3(
             originalScale.x * scaleMultiplier * winConditionRatio * lengthBoost * orientationMultiplier, 

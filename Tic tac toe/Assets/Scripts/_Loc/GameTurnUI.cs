@@ -54,7 +54,7 @@ public class GameTurnUI : MonoBehaviour
         if (youTextRect != null)
         {
             Vector2 currentPos = youTextRect.anchoredPosition;
-            GameManager.PlayerType localPlayer = GameManager.Instance.GetLocalPlayerType();
+            GameManager.PlayerType localPlayer = currentPlayerType; // Theo lượt hiện tại thay vì vị trí người chơi
             if (localPlayer == GameManager.PlayerType.Cross)
             {
                 currentPos.x = crossYouPosX;
