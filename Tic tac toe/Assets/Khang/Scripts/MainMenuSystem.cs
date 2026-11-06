@@ -31,6 +31,7 @@ namespace Khang
         [Header("Navigation Buttons")]
         [SerializeField] private Button[] backToMainButtons; // Nút Back/Close ở các màn hình phụ
 
+        private GameMode pendingMode = GameMode.Local;
         private IMenuState currentState;
         private IUIAnimationStrategy defaultAnimStrategy;
 
@@ -76,15 +77,20 @@ namespace Khang
             // 1. Nút Play Local: Mở bảng chọn kích thước bàn cờ (Grid Size)
             if (playLocalButton)
             {
-                playLocalButton.onClick.AddListener(() => new ChangeStateCommand(this, stateGridSize).Execute());
+                playLocalButton.onClick.AddListener(() =>
+                {
+                    pendingMode = GameMode.Local;
+                    new ChangeStateCommand(this, stateGridSize).Execute();
+                });
             }
 
-            // 2. Nút Play AI: Hiện tại chưa có AI, tạm thời báo log
+            // 2. Nút Training (Play AI): Mở bảng chọn kích thước, sau đó đấu với máy
             if (playAIButton)
             {
-                playAIButton.onClick.AddListener(() => 
+                playAIButton.onClick.AddListener(() =>
                 {
-                    Debug.Log("Chế độ chơi với Máy (AI) đang được phát triển!");
+                    pendingMode = GameMode.AI;
+                    new ChangeStateCommand(this, stateGridSize).Execute();
                 });
             }
 
@@ -98,11 +104,11 @@ namespace Khang
 
             // 5. Nút chọn Grid Size (Dành cho sau này nếu cần)
             if (size3x3Button)
-                size3x3Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 3).Execute());
-            
-            if (size5x5Button) size5x5Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 5).Execute());
-                
-            if (size7x7Button) size7x7Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 7).Execute());
+                size3x3Button.onClick.AddListener(() => new StartMatchCommand(pendingMode, 3).Execute());
+
+            if (size5x5Button) size5x5Button.onClick.AddListener(() => new StartMatchCommand(pendingMode, 5).Execute());
+
+            if (size7x7Button) size7x7Button.onClick.AddListener(() => new StartMatchCommand(pendingMode, 7).Execute());
 
             // 6. Các nút Back để quay về Main Menu
             foreach (var btn in backToMainButtons)
@@ -112,6 +118,11 @@ namespace Khang
                     btn.onClick.AddListener(() => new ChangeStateCommand(this, stateMain).Execute());
                 }
             }
+        }
+
+        public void ShowMainMenu()
+        {
+            ChangeState(stateMain);
         }
 
         public void ChangeState(IMenuState newState)

@@ -324,7 +324,8 @@ public class GameManager : NetworkBehaviour
 
         if (!IsNetworkActive())
         {
-            // OFFLINE / LOCAL HOTSEAT MODE
+            // OFFLINE / LOCAL HOTSEAT MODE (hoặc đấu với máy)
+            if (IsAIMode() && currentPlayablePlayerType == AIPlayerType) return; // Đang là lượt của máy
             ExecuteMoveLocally(x, y, currentPlayablePlayerType);
         }
         else
@@ -370,7 +371,152 @@ public class GameManager : NetworkBehaviour
         {
             currentPlayablePlayerType = (currentPlayablePlayerType == PlayerType.Cross) ? PlayerType.Circle : PlayerType.Cross;
             OnCurrentPlayablePlayerTypeChanged?.Invoke(this, EventArgs.Empty);
+
+            if (IsAIMode() && currentPlayablePlayerType == AIPlayerType)
+            {
+                StartCoroutine(AIMoveRoutine());
+            }
         }
+    }
+
+    // ----------------------------------------------------
+    // TRAINING MODE (đấu với máy) - người chơi là Cross, máy là Circle
+    // ----------------------------------------------------
+    private const PlayerType AIPlayerType = PlayerType.Circle;
+    private const float AIThinkDelay = 0.6f;
+
+    private bool IsAIMode()
+    {
+        return !IsNetworkActive() && Khang.Core.GameConfig.SelectedMode == Khang.Core.GameMode.AI;
+    }
+
+    private System.Collections.IEnumerator AIMoveRoutine()
+    {
+        yield return new WaitForSeconds(AIThinkDelay);
+
+        if (isGameOver || !IsAIMode() || currentPlayablePlayerType != AIPlayerType) yield break;
+
+        if (TryGetAIMove(out Vector2Int move))
+        {
+            ExecuteMoveLocally(move.x, move.y, AIPlayerType);
+        }
+    }
+
+    private bool TryGetAIMove(out Vector2Int move)
+    {
+        PlayerType human = PlayerType.Cross;
+        move = default;
+
+        List<Vector2Int> emptyCells = new List<Vector2Int>();
+        for (int x = 0; x < boardSize; x++)
+            for (int y = 0; y < boardSize; y++)
+                if (playerTypeArray[x, y] == PlayerType.None) emptyCells.Add(new Vector2Int(x, y));
+
+        if (emptyCells.Count == 0) return false;
+
+        // 1. Có nước thắng ngay -> đánh
+        foreach (Vector2Int cell in emptyCells)
+        {
+            if (WouldWin(cell, AIPlayerType)) { move = cell; return true; }
+        }
+
+        // 2. Chặn nước thắng của người chơi
+        foreach (Vector2Int cell in emptyCells)
+        {
+            if (WouldWin(cell, human)) { move = cell; return true; }
+        }
+
+        // 3. Bàn 3x3: minimax (không thể thắng máy)
+        if (boardSize == 3)
+        {
+            int bestScore = int.MinValue;
+            foreach (Vector2Int cell in emptyCells)
+            {
+                playerTypeArray[cell.x, cell.y] = AIPlayerType;
+                int score = Minimax(false, 1, int.MinValue, int.MaxValue);
+                playerTypeArray[cell.x, cell.y] = PlayerType.None;
+
+                if (score > bestScore) { bestScore = score; move = cell; }
+            }
+            return true;
+        }
+
+        // 4. Bàn lớn: chấm điểm theo các đường thắng đi qua ô đó
+        float bestHeuristic = float.MinValue;
+        float center = (boardSize - 1) / 2f;
+        foreach (Vector2Int cell in emptyCells)
+        {
+            float score = ScoreCell(cell, AIPlayerType, human);
+            score -= (Mathf.Abs(cell.x - center) + Mathf.Abs(cell.y - center)) * 0.1f;
+            score += UnityEngine.Random.value * 0.05f; // phá thế đối xứng
+
+            if (score > bestHeuristic) { bestHeuristic = score; move = cell; }
+        }
+        return true;
+    }
+
+    private bool WouldWin(Vector2Int cell, PlayerType player)
+    {
+        playerTypeArray[cell.x, cell.y] = player;
+        bool win = TestWinner(player, out _);
+        playerTypeArray[cell.x, cell.y] = PlayerType.None;
+        return win;
+    }
+
+    private int Minimax(bool aiTurn, int depth, int alpha, int beta)
+    {
+        if (TestWinner(AIPlayerType, out _)) return 10 - depth;
+        if (TestWinner(PlayerType.Cross, out _)) return depth - 10;
+        if (TestTie()) return 0;
+
+        PlayerType mover = aiTurn ? AIPlayerType : PlayerType.Cross;
+        int best = aiTurn ? int.MinValue : int.MaxValue;
+
+        for (int x = 0; x < boardSize; x++)
+        {
+            for (int y = 0; y < boardSize; y++)
+            {
+                if (playerTypeArray[x, y] != PlayerType.None) continue;
+
+                playerTypeArray[x, y] = mover;
+                int score = Minimax(!aiTurn, depth + 1, alpha, beta);
+                playerTypeArray[x, y] = PlayerType.None;
+
+                if (aiTurn)
+                {
+                    best = Mathf.Max(best, score);
+                    alpha = Mathf.Max(alpha, best);
+                }
+                else
+                {
+                    best = Mathf.Min(best, score);
+                    beta = Mathf.Min(beta, best);
+                }
+                if (beta <= alpha) return best;
+            }
+        }
+        return best;
+    }
+
+    private float ScoreCell(Vector2Int cell, PlayerType self, PlayerType opponent)
+    {
+        float total = 0f;
+        foreach (Line line in lineList)
+        {
+            if (!line.gridVector2IntList.Contains(cell)) continue;
+
+            int selfCount = 0, oppCount = 0;
+            foreach (Vector2Int pos in line.gridVector2IntList)
+            {
+                PlayerType t = playerTypeArray[pos.x, pos.y];
+                if (t == self) selfCount++;
+                else if (t == opponent) oppCount++;
+            }
+
+            if (oppCount == 0) total += Mathf.Pow(10f, selfCount);       // đường còn mở cho máy
+            if (selfCount == 0) total += Mathf.Pow(10f, oppCount) * 0.9f; // chặn đường của người chơi
+        }
+        return total;
     }
 
     [ServerRpc(RequireOwnership = false)]
