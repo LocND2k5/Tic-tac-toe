@@ -1,0 +1,108 @@
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
+namespace Khang
+{
+    /// <summary>
+    /// In-game Pause Menu overlay for SampleScene.
+    ///
+    /// Setup:
+    ///   1. Create a full-screen Panel called "PauseMenuPanel" (child of Canvas).
+    ///   2. Inside it add:
+    ///        • Resume Button       → wire to PauseMenuUI.Resume()
+    ///        • Settings Button     → wire to PauseMenuUI.OpenSettings()
+    ///        • Main Menu Button    → wire to PauseMenuUI.GoToMainMenu()
+    ///   3. Create a child Panel called "SettingsPanel" and attach SettingsUI to it.
+    ///   4. Attach this script to any persistent GameObject in SampleScene.
+    ///   5. Assign all serialized fields in the Inspector.
+    ///   6. Press Escape (or the configured pauseKey) to toggle the pause menu.
+    /// </summary>
+    public class PauseMenuUI : MonoBehaviour
+    {
+        [Header("Panels")]
+        [SerializeField] private GameObject pauseMenuPanel;
+        [SerializeField] private SettingsUI settingsUI;        // SettingsPanel nested inside PauseMenuPanel
+
+        [Header("Pause Menu Buttons")]
+        [SerializeField] private Button resumeButton;
+        [SerializeField] private Button settingsButton;
+        [SerializeField] private Button mainMenuButton;
+
+        [Header("Configuration")]
+        [SerializeField] private KeyCode pauseKey = KeyCode.Escape;
+        [SerializeField] private string mainMenuSceneName = "MainMenuScene";
+
+        // ── State ──────────────────────────────────────────────────────
+        private bool isPaused;
+
+        // ── Lifecycle ──────────────────────────────────────────────────
+
+        private void Awake()
+        {
+            if (resumeButton   != null) resumeButton.onClick.AddListener(Resume);
+            if (settingsButton  != null) settingsButton.onClick.AddListener(OpenSettings);
+            if (mainMenuButton  != null) mainMenuButton.onClick.AddListener(GoToMainMenu);
+
+            HidePauseMenu();
+        }
+
+        private void Update()
+        {
+            if (Input.GetKeyDown(pauseKey))
+            {
+                if (isPaused) Resume();
+                else          Pause();
+            }
+        }
+
+        // ── Public API (called by buttons and from Update) ─────────────
+
+        public void Pause()
+        {
+            isPaused = true;
+            Time.timeScale = 0f;
+            ShowPauseMenu();
+        }
+
+        public void Resume()
+        {
+            // If settings panel is open, close it first instead of fully resuming
+            if (settingsUI != null && settingsUI.gameObject.activeSelf)
+            {
+                settingsUI.Hide();
+                return;
+            }
+
+            isPaused = false;
+            Time.timeScale = 1f;
+            HidePauseMenu();
+        }
+
+        public void OpenSettings()
+        {
+            if (settingsUI != null) settingsUI.Show();
+        }
+
+        public void GoToMainMenu()
+        {
+            isPaused = false;
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(mainMenuSceneName);
+        }
+
+        // ── Helpers ────────────────────────────────────────────────────
+
+        private void ShowPauseMenu()
+        {
+            if (pauseMenuPanel != null) pauseMenuPanel.SetActive(true);
+            if (settingsUI     != null) settingsUI.Hide(); // always start with settings closed
+        }
+
+        private void HidePauseMenu()
+        {
+            if (pauseMenuPanel != null) pauseMenuPanel.SetActive(false);
+            if (settingsUI     != null) settingsUI.Hide();
+        }
+    }
+}

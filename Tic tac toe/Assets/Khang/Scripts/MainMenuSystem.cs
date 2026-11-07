@@ -1,12 +1,66 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using Khang.Core;
-using Khang.Commands;
-using Khang.Strategies;
-using Khang.States;
 
 namespace Khang
 {
+    // =========================================================================
+    // DEPENDENCY INVERSION PRINCIPLE (DIP)
+    // 1. Abstraction (Giao diện trừu tượng)
+    // =========================================================================
+    public interface IMenuState
+    {
+        void EnterState();
+        void ExitState();
+    }
+
+    // =========================================================================
+    // 2. Low-Level Modules (Các Panel cụ thể tuân thủ hợp đồng IMenuState)
+    // =========================================================================
+    public class GenericPanelState : IMenuState
+    {
+        private readonly GameObject panel;
+
+        public GenericPanelState(GameObject panel)
+        {
+            this.panel = panel;
+        }
+
+        public void EnterState()
+        {
+            if (panel != null) panel.SetActive(true);
+        }
+
+        public void ExitState()
+        {
+            if (panel != null) panel.SetActive(false);
+        }
+    }
+
+    public class SettingsPanelState : IMenuState
+    {
+        private readonly GameObject settingsPanel;
+
+        public SettingsPanelState(GameObject settingsPanel)
+        {
+            this.settingsPanel = settingsPanel;
+        }
+
+        public void EnterState()
+        {
+            if (settingsPanel != null) settingsPanel.SetActive(true);
+        }
+
+        public void ExitState()
+        {
+            if (settingsPanel != null) settingsPanel.SetActive(false);
+        }
+    }
+
+    // =========================================================================
+    // 3. High-Level Module (Hệ thống Menu chỉ phụ thuộc vào IMenuState)
+    // =========================================================================
     public class MainMenuSystem : MonoBehaviour
     {
         public static MainMenuSystem Instance { get; private set; }
@@ -29,12 +83,11 @@ namespace Khang
         [SerializeField] private Button size7x7Button;
 
         [Header("Navigation Buttons")]
-        [SerializeField] private Button[] backToMainButtons; // Nút Back/Close ở các màn hình phụ
+        [SerializeField] private Button[] backToMainButtons;
 
+        // Dependency Inversion: Chỉ phụ thuộc vào Abstraction IMenuState
         private IMenuState currentState;
-        private IUIAnimationStrategy defaultAnimStrategy;
 
-        // Các State
         private IMenuState stateMain;
         private IMenuState stateMultiplayer;
         private IMenuState stateGridSize;
@@ -48,16 +101,14 @@ namespace Khang
                 return;
             }
             Instance = this;
-            
-            defaultAnimStrategy = new InstantAnimationStrategy();
 
-            // Khởi tạo các State cho từng Panel
-            stateMain = new GenericPanelState(mainPanel, defaultAnimStrategy);
-            stateMultiplayer = new GenericPanelState(multiplayerPanel, defaultAnimStrategy);
-            stateGridSize = new GenericPanelState(gridSizePanel, defaultAnimStrategy);
-            stateSettings = new GenericPanelState(settingsPanel, defaultAnimStrategy);
+            // Khởi tạo các State cho từng panel (Low-level Modules)
+            stateMain = new GenericPanelState(mainPanel);
+            stateMultiplayer = new GenericPanelState(multiplayerPanel);
+            stateGridSize = new GenericPanelState(gridSizePanel);
+            stateSettings = new SettingsPanelState(settingsPanel);
 
-            // Ẩn tất cả các panel phụ lúc mới bật
+            // Ẩn các panel phụ lúc đầu
             if (multiplayerPanel) multiplayerPanel.SetActive(false);
             if (gridSizePanel) gridSizePanel.SetActive(false);
             if (settingsPanel) settingsPanel.SetActive(false);
@@ -66,54 +117,62 @@ namespace Khang
         private void Start()
         {
             SetupButtons();
-            
-            // Vào State chính của Main Menu
             ChangeState(stateMain);
         }
 
         private void SetupButtons()
         {
-            // 1. Nút Play Local: Mở bảng chọn kích thước bàn cờ (Grid Size)
+            // Các nút chuyển giao diện thông thường
             if (playLocalButton)
-            {
-                playLocalButton.onClick.AddListener(() => new ChangeStateCommand(this, stateGridSize).Execute());
-            }
+                playLocalButton.onClick.AddListener(() => ChangeState(stateGridSize));
 
-            // 2. Nút Play AI: Hiện tại chưa có AI, tạm thời báo log
             if (playAIButton)
-            {
-                playAIButton.onClick.AddListener(() => 
-                {
-                    Debug.Log("Chế độ chơi với Máy (AI) đang được phát triển!");
-                });
-            }
+                playAIButton.onClick.AddListener(() => Debug.Log("Chế độ chơi với Máy (AI) đang được phát triển!"));
 
-            // 3. Nút Play Online: Mở bảng Multiplayer
             if (playOnlineButton)
-                playOnlineButton.onClick.AddListener(() => new ChangeStateCommand(this, stateMultiplayer).Execute());
-            
-            // 4. Nút Settings
+                playOnlineButton.onClick.AddListener(() => ChangeState(stateMultiplayer));
+
             if (openSettingsButton)
-                openSettingsButton.onClick.AddListener(() => new ChangeStateCommand(this, stateSettings).Execute());
+                openSettingsButton.onClick.AddListener(() => ChangeState(stateSettings));
 
-            // 5. Nút chọn Grid Size (Dành cho sau này nếu cần)
+            // Nút chọn kích thước bàn cờ và vào trận trực tiếp
             if (size3x3Button)
-                size3x3Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 3).Execute());
-            
-            if (size5x5Button) size5x5Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 5).Execute());
-                
-            if (size7x7Button) size7x7Button.onClick.AddListener(() => new StartMatchCommand(GameMode.Local, 7).Execute());
+                size3x3Button.onClick.AddListener(() => StartMatch(GameMode.Local, 3));
 
-            // 6. Các nút Back để quay về Main Menu
+            if (size5x5Button)
+                size5x5Button.onClick.AddListener(() => StartMatch(GameMode.Local, 5));
+
+            if (size7x7Button)
+                size7x7Button.onClick.AddListener(() => StartMatch(GameMode.Local, 7));
+
+            // Các nút Back quay về Main Panel
             foreach (var btn in backToMainButtons)
             {
                 if (btn != null)
-                {
-                    btn.onClick.AddListener(() => new ChangeStateCommand(this, stateMain).Execute());
-                }
+                    btn.onClick.AddListener(() => ChangeState(stateMain));
             }
         }
 
+        public void StartMatch(GameMode mode, int gridSize)
+        {
+            GameConfig.SelectedMode = mode;
+            GameConfig.GridSize = gridSize;
+            SceneManager.LoadScene("SampleScene");
+        }
+
+        public void LoadScene(string sceneName)
+        {
+            SceneManager.LoadScene(sceneName);
+        }
+
+        public void QuitApp()
+        {
+            Application.Quit();
+        }
+
+        // =========================================================================
+        // DEPENDENCY INVERSION: Đổi panel thông qua IMenuState trừu tượng
+        // =========================================================================
         public void ChangeState(IMenuState newState)
         {
             currentState?.ExitState();
