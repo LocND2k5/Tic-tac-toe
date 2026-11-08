@@ -3814,7 +3814,7 @@ MonoBehaviour:
   mainPanel: {fileID: 123298075}
   multiplayerPanel: {fileID: 1695833010}
   gridSizePanel: {fileID: 1041700519}
-  settingsPanel: {fileID: 0}
+  settingsPanel: {fileID: 1811881875}
   playLocalButton: {fileID: 2078093}
   playAIButton: {fileID: 192929885}
   playOnlineButton: {fileID: 176826969}
@@ -3824,8 +3824,8 @@ MonoBehaviour:
   size7x7Button: {fileID: 1109333626}
   backToMainButtons:
   - {fileID: 353911234}
-  - {fileID: 0}
   - {fileID: 343155169}
+  - {fileID: 1664730301}
 --- !u!4 &955110236
 Transform:
   m_ObjectHideFlags: 0
@@ -6718,8 +6718,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Khang.SettingsUI
   masterVolumeSlider: {fileID: 2128922665}
-  sfxVolumeSlider: {fileID: 0}
-  musicVolumeSlider: {fileID: 0}
+  sfxVolumeSlider: {fileID: 941739047}
+  musicVolumeSlider: {fileID: 1552073259}
   masterLabel: {fileID: 0}
   sfxLabel: {fileID: 557709582}
   musicLabel: {fileID: 1569277986}

@@ -32,6 +32,8 @@ namespace Khang
 
         private void Awake()
         {
+            SettingsManager.EnsureInstance();
+
             if (masterVolumeSlider != null)
                 masterVolumeSlider.onValueChanged.AddListener(OnMasterSliderChanged);
             if (sfxVolumeSlider != null)
@@ -151,6 +153,14 @@ namespace Khang
     public class SettingsManager : MonoBehaviour
     {
         public static SettingsManager Instance { get; private set; }
+
+        public static SettingsManager EnsureInstance()
+        {
+            if (Instance != null) return Instance;
+
+            var settingsObject = new GameObject(nameof(SettingsManager));
+            return settingsObject.AddComponent<SettingsManager>();
+        }
 
         private const string KEY_MASTER_VOLUME = "MasterVolume";
         private const string KEY_SFX_VOLUME    = "SFXVolume";
