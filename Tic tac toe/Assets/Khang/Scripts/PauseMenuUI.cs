@@ -26,6 +26,7 @@ namespace Khang
 
         [Header("Pause Menu Buttons")]
         [SerializeField] private Button resumeButton;
+        [SerializeField] private Button restartButton;
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button mainMenuButton;
 
@@ -41,6 +42,7 @@ namespace Khang
         private void Awake()
         {
             if (resumeButton   != null) resumeButton.onClick.AddListener(Resume);
+            if (restartButton  != null) restartButton.onClick.AddListener(Restart);
             if (settingsButton  != null) settingsButton.onClick.AddListener(OpenSettings);
             if (mainMenuButton  != null) mainMenuButton.onClick.AddListener(GoToMainMenu);
 
@@ -77,6 +79,22 @@ namespace Khang
             isPaused = false;
             Time.timeScale = 1f;
             HidePauseMenu();
+        }
+
+        public void Restart()
+        {
+            isPaused = false;
+            Time.timeScale = 1f;
+
+            if (GameManager.Instance != null && GameManager.Instance.IsNetworkActive())
+            {
+                GameManager.Instance.Rematch();
+                HidePauseMenu();
+            }
+            else
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            }
         }
 
         public void OpenSettings()
