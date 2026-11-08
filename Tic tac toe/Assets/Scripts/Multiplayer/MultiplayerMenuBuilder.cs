@@ -46,19 +46,21 @@ namespace TicTacToe.Multiplayer
             // ---------------- Host ----------------
             r.hostView = CreateView(parent, "HostView");
             Transform h = r.hostView.transform;
-            CreateLabel(h, "Title", "YOUR ROOM CODE", 34, TitleColor, new Vector2(0, 310), new Vector2(800, 60), scale);
-            r.roomCodeText = CreateLabel(h, "RoomCodeText", "------", 72, Color.white, new Vector2(0, 225), new Vector2(700, 100), scale);
-            r.hostStatusText = CreateLabel(h, "HostStatusText", "", 26, Color.white, new Vector2(0, 140), new Vector2(900, 50), scale);
-            r.copyCodeButton = CreateButton(h, "CopyCodeButton", "COPY CODE", BlueColor, Color.white, new Vector2(0, 60), new Vector2(260, 56), scale);
-            r.selectedGridText = CreateLabel(h, "SelectedGridText", "Board Size: 3x3", 26, Color.white, new Vector2(0, -30), new Vector2(600, 44), scale);
+            // Màn Host nhiều phần tử xếp dọc -> thu nhỏ thêm để không tràn màn hình
+            float hs = scale * 0.75f;
+            CreateLabel(h, "Title", "YOUR ROOM CODE", 34, TitleColor, new Vector2(0, 270), new Vector2(800, 60), hs);
+            r.roomCodeText = CreateLabel(h, "RoomCodeText", "------", 72, Color.white, new Vector2(0, 195), new Vector2(700, 100), hs);
+            r.hostStatusText = CreateLabel(h, "HostStatusText", "", 26, Color.white, new Vector2(0, 120), new Vector2(900, 50), hs);
+            r.copyCodeButton = CreateButton(h, "CopyCodeButton", "COPY CODE", BlueColor, Color.white, new Vector2(0, 50), new Vector2(260, 56), hs);
+            r.selectedGridText = CreateLabel(h, "SelectedGridText", "Board Size: 3x3", 26, Color.white, new Vector2(0, -25), new Vector2(600, 44), hs);
             for (int i = 0; i < GridSizes.Length; i++)
             {
                 int size = GridSizes[i];
                 r.gridButtons[i] = CreateButton(h, "Size" + size + "x" + size + "Button", size + "x" + size, GridColor, Color.white,
-                    new Vector2((i - 1) * 170, -105), new Vector2(130, 56), scale);
+                    new Vector2((i - 1) * 170, -90), new Vector2(130, 56), hs);
             }
-            r.startGameButton = CreateButton(h, "StartGameButton", "START MATCH", GreenColor, Color.white, new Vector2(0, -210), new Vector2(320, 64), scale);
-            r.closeRoomButton = CreateButton(h, "CloseRoomButton", "CLOSE ROOM", RedColor, Color.white, new Vector2(0, -310), new Vector2(240, 50), scale);
+            r.startGameButton = CreateButton(h, "StartGameButton", "START MATCH", GreenColor, Color.white, new Vector2(0, -180), new Vector2(320, 64), hs);
+            r.closeRoomButton = CreateButton(h, "CloseRoomButton", "CLOSE ROOM", RedColor, Color.white, new Vector2(0, -265), new Vector2(240, 50), hs);
 
             // ---------------- Join ----------------
             r.joinView = CreateView(parent, "JoinView");

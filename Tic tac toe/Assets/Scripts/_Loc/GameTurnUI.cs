@@ -14,8 +14,23 @@ public class GameTurnUI : MonoBehaviour
     [SerializeField] private float crossYouPosX = 60f;
     [SerializeField] private float circleYouPosX = -40f;
 
+    private RectTransform crossIconRect;
+    private RectTransform circleIconRect;
+
+    private RectTransform FindChildRect(string childName)
+    {
+        foreach (RectTransform rt in GetComponentsInChildren<RectTransform>(true))
+        {
+            if (rt.name == childName) return rt;
+        }
+        return null;
+    }
+
     private void Start()
     {
+        crossIconRect = FindChildRect("CrossIcon");
+        circleIconRect = FindChildRect("CircleIcon");
+
         GameManager.Instance.OnCurrentPlayablePlayerTypeChanged += GameManager_OnCurrentPlayablePlayerTypeChanged;
         GameManager.Instance.OnRematch += GameManager_OnRematch;
 
@@ -27,6 +42,7 @@ public class GameTurnUI : MonoBehaviour
     private string crossName, circleName;
     private bool nameInYouText;
     private TMP_Text youText;
+    private UnityEngine.UI.Text youLegacyText;
 
     private void SetupNames()
     {
@@ -36,8 +52,14 @@ public class GameTurnUI : MonoBehaviour
             string opponent = string.IsNullOrEmpty(PlayerProfile.OpponentName) ? "Opponent" : PlayerProfile.OpponentName;
             crossName = isHost ? PlayerProfile.Name : opponent;
             circleName = isHost ? opponent : PlayerProfile.Name;
+            Debug.Log($"[GameTurnUI] isHost={isHost} localName='{PlayerProfile.Name}' opponentName='{PlayerProfile.OpponentName}'");
 
-            if (youTextRect != null) youText = youTextRect.GetComponentInChildren<TMP_Text>(true);
+            if (youTextRect != null)
+            {
+                youText = youTextRect.GetComponentInChildren<TMP_Text>(true);
+                youLegacyText = youTextRect.GetComponentInChildren<UnityEngine.UI.Text>(true);
+            }
+
             if (youText != null)
             {
                 nameInYouText = true;
@@ -46,6 +68,15 @@ public class GameTurnUI : MonoBehaviour
                 youText.enableAutoSizing = true;
                 youText.fontSizeMin = 8;
                 youText.fontSizeMax = youText.fontSize;
+            }
+            else if (youLegacyText != null)
+            {
+                // Scene đang dùng UI Text cũ (không phải TextMeshPro)
+                nameInYouText = true;
+                youLegacyText.horizontalOverflow = HorizontalWrapMode.Overflow;
+                youLegacyText.resizeTextForBestFit = true;
+                youLegacyText.resizeTextMinSize = 8;
+                youLegacyText.resizeTextMaxSize = youLegacyText.fontSize;
             }
         }
         else if (Khang.Core.GameConfig.SelectedMode == Khang.Core.GameMode.AI)
@@ -129,22 +160,31 @@ public class GameTurnUI : MonoBehaviour
         // Position the "YOU" text badge to clearly identify local player role
         if (youTextRect != null)
         {
-            Vector2 currentPos = youTextRect.anchoredPosition;
-            GameManager.PlayerType localPlayer = currentPlayerType; // Theo lượt hiện tại thay vì vị trí người chơi
-            if (localPlayer == GameManager.PlayerType.Cross)
+            // Căn chữ ngay dưới icon của người đang tới lượt (theo vị trí thật của icon trong scene)
+            RectTransform targetIcon = currentPlayerType == GameManager.PlayerType.Cross ? crossIconRect
+                : currentPlayerType == GameManager.PlayerType.Circle ? circleIconRect : null;
+
+            if (targetIcon != null)
             {
-                currentPos.x = crossYouPosX;
+                Vector3 worldPos = youTextRect.position;
+                worldPos.x = targetIcon.position.x;
+                youTextRect.position = worldPos;
             }
-            else if (localPlayer == GameManager.PlayerType.Circle)
+            else
             {
-                currentPos.x = circleYouPosX;
+                // Không tìm thấy icon -> dùng vị trí cố định cũ
+                Vector2 currentPos = youTextRect.anchoredPosition;
+                if (currentPlayerType == GameManager.PlayerType.Cross) currentPos.x = crossYouPosX;
+                else if (currentPlayerType == GameManager.PlayerType.Circle) currentPos.x = circleYouPosX;
+                youTextRect.anchoredPosition = currentPos;
             }
-            youTextRect.anchoredPosition = currentPos;
         }
 
         if (nameInYouText)
         {
-            youText.text = currentPlayerType == GameManager.PlayerType.Circle ? circleName : crossName;
+            string currentName = currentPlayerType == GameManager.PlayerType.Circle ? circleName : crossName;
+            if (youText != null) youText.text = currentName;
+            else youLegacyText.text = currentName;
         }
     }
 }

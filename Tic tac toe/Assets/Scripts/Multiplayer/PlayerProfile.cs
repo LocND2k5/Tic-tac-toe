@@ -8,7 +8,17 @@ namespace TicTacToe.Multiplayer
         public const int MaxNameLength = 12;
         public const string DefaultName = "Player";
 
-        private const string PrefsKey = "PlayerName";
+        // Khóa lưu theo đường dẫn project: các cửa sổ Multiplayer Play Mode (và bản build khác nhau)
+        // dùng chung PlayerPrefs nhưng sẽ không ghi đè / tự điền tên của nhau
+        private static string prefsKey;
+        private static string PrefsKey => prefsKey ??= "PlayerName_" + StableHash(Application.dataPath);
+
+        private static string StableHash(string s)
+        {
+            uint h = 2166136261;
+            foreach (char c in s) h = (h ^ c) * 16777619;
+            return h.ToString("x8");
+        }
 
         public static string OpponentName = "";
 

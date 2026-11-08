@@ -165,6 +165,11 @@ namespace Khang
             SceneManager.LoadScene(sceneName);
         }
 
+        public void ShowMainMenu()
+        {
+            ChangeState(stateMain);
+        }
+
         public void QuitApp()
         {
             Application.Quit();
