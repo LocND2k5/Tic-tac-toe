@@ -27,6 +27,7 @@ namespace TicTacToe.Multiplayer
         public const string REMATCH_DEFAULT = "REMATCH";
         public const string REMATCH_WAITING = "WAITING FOR OPPONENT...";
         public const string REMATCH_OPPONENT_REQUESTED = "OPPONENT WANTS REMATCH! (CLICK TO ACCEPT)";
+        public const string MSG_REMATCH_DECLINED = "Opponent declined the rematch.";
         public const string MSG_OPPONENT_DISCONNECTED = "Opponent disconnected from the match.";
         public const string MSG_HOST_DISCONNECTED = "Host disconnected. Session closed.";
     }
