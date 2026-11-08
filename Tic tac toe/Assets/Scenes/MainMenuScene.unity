@@ -757,7 +757,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &123298076
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6638,7 +6638,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1695833011
 RectTransform:
   m_ObjectHideFlags: 0
@@ -6715,17 +6715,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6dd88d6013030264992c02344d46f3ac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TicTacToe.Multiplayer.NetworkUI
-  _hostButton: {fileID: 321316493}
-  _clientButton: {fileID: 1297672514}
-  _disconnectButton: {fileID: 681380237}
-  _startGameButton: {fileID: 1548972173}
-  _statusText: {fileID: 1601236266}
-  _buttonsContainer: {fileID: 1432882220}
-  _gridSelectionContainer: {fileID: 376856390}
-  _size3x3Button: {fileID: 1813071099}
-  _size5x5Button: {fileID: 1791448315}
-  _size7x7Button: {fileID: 30992519}
+  _menuView: {fileID: 0}
+  _hostView: {fileID: 0}
+  _joinView: {fileID: 0}
+  _nameInput: {fileID: 0}
+  _createRoomButton: {fileID: 0}
+  _joinGameButton: {fileID: 0}
+  _backToMenuButton: {fileID: 0}
+  _roomCodeText: {fileID: 0}
+  _hostStatusText: {fileID: 0}
+  _copyCodeButton: {fileID: 0}
   _selectedGridText: {fileID: 1179040749}
+  _gridButtons:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  _startGameButton: {fileID: 1548972173}
+  _closeRoomButton: {fileID: 0}
+  _codeInput: {fileID: 0}
+  _joinConfirmButton: {fileID: 0}
+  _joinStatusText: {fileID: 0}
+  _joinBackButton: {fileID: 0}
 --- !u!1 &1748523320
 GameObject:
   m_ObjectHideFlags: 0

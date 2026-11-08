@@ -12,5 +12,6 @@ namespace Khang.Core
     {
         public static GameMode SelectedMode = GameMode.Local;
         public static int GridSize = 3; // 3x3, 5x5, 7x7
+        public static bool ReturnToMultiplayer = false;
     }
 }

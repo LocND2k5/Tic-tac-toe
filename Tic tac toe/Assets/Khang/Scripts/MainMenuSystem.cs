@@ -109,7 +109,8 @@ namespace Khang
             stateGridSize = new GenericPanelState(gridSizePanel);
             stateSettings = new SettingsPanelState(settingsPanel);
 
-            // Ẩn các panel phụ lúc đầu
+            // Ẩn các panel lúc đầu để State quản lý việc hiển thị
+            if (mainPanel) mainPanel.SetActive(false);
             if (multiplayerPanel) multiplayerPanel.SetActive(false);
             if (gridSizePanel) gridSizePanel.SetActive(false);
             if (settingsPanel) settingsPanel.SetActive(false);
@@ -118,7 +119,16 @@ namespace Khang
         private void Start()
         {
             SetupButtons();
-            ChangeState(stateMain);
+
+            if (GameConfig.ReturnToMultiplayer)
+            {
+                GameConfig.ReturnToMultiplayer = false;
+                ChangeState(stateMultiplayer);
+            }
+            else
+            {
+                ChangeState(stateMain);
+            }
         }
 
         private void SetupButtons()
@@ -131,7 +141,11 @@ namespace Khang
                 playAIButton.onClick.AddListener(() => Debug.Log("Chế độ chơi với Máy (AI) đang được phát triển!"));
 
             if (playOnlineButton)
-                playOnlineButton.onClick.AddListener(() => ChangeState(stateMultiplayer));
+                playOnlineButton.onClick.AddListener(() =>
+                {
+                    GameConfig.SelectedMode = GameMode.Multiplayer;
+                    ChangeState(stateMultiplayer);
+                });
 
             if (openSettingsButton)
                 openSettingsButton.onClick.AddListener(() => ChangeState(stateSettings));
@@ -153,7 +167,13 @@ namespace Khang
             foreach (var btn in backToMainButtons)
             {
                 if (btn != null)
-                    btn.onClick.AddListener(() => ChangeState(stateMain));
+                {
+                    btn.onClick.AddListener(() =>
+                    {
+                        GameConfig.SelectedMode = GameMode.Local;
+                        ChangeState(stateMain);
+                    });
+                }
             }
         }
 
@@ -171,7 +191,14 @@ namespace Khang
 
         public void ShowMainMenu()
         {
+            GameConfig.SelectedMode = GameMode.Local;
             ChangeState(stateMain);
+        }
+
+        public void ShowMultiplayerMenu()
+        {
+            GameConfig.SelectedMode = GameMode.Multiplayer;
+            ChangeState(stateMultiplayer);
         }
 
         public void QuitApp()
