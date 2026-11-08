@@ -12,7 +12,6 @@ namespace Khang
     ///   2. Inside it add:
     ///        • Resume Button       → wire to PauseMenuUI.Resume()
     ///        • Settings Button     → wire to PauseMenuUI.OpenSettings()
-    ///        • Main Menu Button    → wire to PauseMenuUI.GoToMainMenu()
     ///   3. Create a child Panel called "SettingsPanel" and attach SettingsUI to it.
     ///   4. Attach this script to any persistent GameObject in SampleScene.
     ///   5. Assign all serialized fields in the Inspector.
@@ -28,11 +27,9 @@ namespace Khang
         [SerializeField] private Button resumeButton;
         [SerializeField] private Button restartButton;
         [SerializeField] private Button settingsButton;
-        [SerializeField] private Button mainMenuButton;
 
         [Header("Configuration")]
         [SerializeField] private KeyCode pauseKey = KeyCode.Escape;
-        [SerializeField] private string mainMenuSceneName = "MainMenuScene";
 
         // ── State ──────────────────────────────────────────────────────
         private bool isPaused;
@@ -44,7 +41,6 @@ namespace Khang
             if (resumeButton   != null) resumeButton.onClick.AddListener(Resume);
             if (restartButton  != null) restartButton.onClick.AddListener(Restart);
             if (settingsButton  != null) settingsButton.onClick.AddListener(OpenSettings);
-            if (mainMenuButton  != null) mainMenuButton.onClick.AddListener(GoToMainMenu);
 
             HidePauseMenu();
         }
@@ -100,13 +96,6 @@ namespace Khang
         public void OpenSettings()
         {
             if (settingsUI != null) settingsUI.Show();
-        }
-
-        public void GoToMainMenu()
-        {
-            isPaused = false;
-            Time.timeScale = 1f;
-            SceneManager.LoadScene(mainMenuSceneName);
         }
 
         // ── Helpers ────────────────────────────────────────────────────

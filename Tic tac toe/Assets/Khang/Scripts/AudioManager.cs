@@ -12,13 +12,11 @@ namespace Khang
     {
         public static AudioManager Instance { get; private set; }
 
-        [Header("Audio Sources (Để trống sẽ tự tạo)")]
-        [SerializeField] private AudioSource musicSource;
-        [SerializeField] private AudioSource sfxSource;
+        private AudioSource musicSource;
+        private AudioSource sfxSource;
 
         [Header("Audio Clips (Kéo file nhạc/âm thanh vào đây)")]
         [SerializeField] private AudioClip bgmMusic;
-        [SerializeField] private AudioClip buttonClickSFX;
         [SerializeField] private AudioClip placePieceSFX;
         [SerializeField] private AudioClip winSFX;
         [SerializeField] private AudioClip tieSFX;
@@ -35,18 +33,9 @@ namespace Khang
 
             SettingsManager.EnsureInstance();
 
-            // Tự khởi tạo AudioSource nếu chưa kéo trong Inspector
-            if (musicSource == null)
-            {
-                musicSource = gameObject.AddComponent<AudioSource>();
-                musicSource.loop = true;
-                musicSource.playOnAwake = false;
-            }
-
-            if (sfxSource == null)
-            {
-                sfxSource = gameObject.AddComponent<AudioSource>();
-            }
+            var audioSources = GetComponents<AudioSource>();
+            musicSource = audioSources.Length > 0 ? audioSources[0] : gameObject.AddComponent<AudioSource>();
+            sfxSource = audioSources.Length > 1 ? audioSources[1] : gameObject.AddComponent<AudioSource>();
 
             musicSource.loop = true;
             musicSource.playOnAwake = false;
@@ -174,7 +163,6 @@ namespace Khang
             sfxSource.PlayOneShot(clip);
         }
 
-        public void PlayButtonClick() => PlaySFX(buttonClickSFX);
         public void PlayPlacePiece()  => PlaySFX(placePieceSFX);
         public void PlayWin()         => PlaySFX(winSFX);
         public void PlayTie()         => PlaySFX(tieSFX);
