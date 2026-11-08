@@ -29,6 +29,8 @@ public class GameManager : NetworkBehaviour
         public PlayerType requestingPlayer;
     }
 
+    public event EventHandler<OnRematchRequestedEventArgs> OnRematchDeclined; // requestingPlayer = người từ chối
+
     public event EventHandler<OnMatchInterruptedEventArgs> OnMatchInterrupted;
     public class OnMatchInterruptedEventArgs : EventArgs
     {
@@ -289,6 +291,7 @@ public class GameManager : NetworkBehaviour
     private void NetworkManager_OnClientDisconnect(ulong clientId)
     {
         if (!IsNetworkActive()) return;
+        if (rematchDeclined) return; // đã có thông báo "từ chối đấu lại", không ghi đè bằng thông báo ngắt kết nối
 
         if (NetworkManager.Singleton.IsServer)
         {
@@ -649,6 +652,39 @@ public class GameManager : NetworkBehaviour
 
             ResetBoardData();
             TriggerOnRematchClientRpc();
+        }
+    }
+
+    // Từ chối đấu lại: cả hai bên được báo, người từ chối sẽ rời phòng (xử lý ở RematchUI)
+    private bool rematchDeclined;
+
+    public void DeclineRematch()
+    {
+        if (!IsNetworkActive()) return;
+        DeclineRematchServerRpc();
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    private void DeclineRematchServerRpc(ServerRpcParams rpcParams = default)
+    {
+        PlayerType declinerType = GetPlayerTypeForClientId(rpcParams.Receive.SenderClientId);
+        hostWantsRematch = false;
+        clientWantsRematch = false;
+        NotifyRematchDeclinedClientRpc(declinerType);
+    }
+
+    [ClientRpc]
+    private void NotifyRematchDeclinedClientRpc(PlayerType declinerType)
+    {
+        rematchDeclined = true;
+        OnRematchDeclined?.Invoke(this, new OnRematchRequestedEventArgs { requestingPlayer = declinerType });
+
+        if (declinerType != GetLocalPlayerType())
+        {
+            OnMatchInterrupted?.Invoke(this, new OnMatchInterruptedEventArgs
+            {
+                reason = MultiplayerConstants.MSG_REMATCH_DECLINED
+            });
         }
     }
 

@@ -86,6 +86,9 @@ namespace Khang
         [Header("Navigation Buttons")]
         [SerializeField] private Button[] backToMainButtons;
 
+        // Chế độ sẽ dùng khi người chơi chọn kích thước bàn (Local hoặc AI)
+        private GameMode pendingMode = GameMode.Local;
+
         // Dependency Inversion: Chỉ phụ thuộc vào Abstraction IMenuState
         private IMenuState currentState;
 
@@ -135,10 +138,23 @@ namespace Khang
         {
             // Các nút chuyển giao diện thông thường
             if (playLocalButton)
-                playLocalButton.onClick.AddListener(() => ChangeState(stateGridSize));
+            {
+                playLocalButton.onClick.AddListener(() =>
+                {
+                    pendingMode = GameMode.Local;
+                    ChangeState(stateGridSize);
+                });
+            }
 
+            // Training (đấu với máy): chọn kích thước bàn rồi vào trận ở chế độ AI
             if (playAIButton)
-                playAIButton.onClick.AddListener(() => Debug.Log("Chế độ chơi với Máy (AI) đang được phát triển!"));
+            {
+                playAIButton.onClick.AddListener(() =>
+                {
+                    pendingMode = GameMode.AI;
+                    ChangeState(stateGridSize);
+                });
+            }
 
             if (playOnlineButton)
                 playOnlineButton.onClick.AddListener(() =>
@@ -155,13 +171,13 @@ namespace Khang
 
             // Nút chọn kích thước bàn cờ và vào trận trực tiếp
             if (size3x3Button)
-                size3x3Button.onClick.AddListener(() => StartMatch(GameMode.Local, 3));
+                size3x3Button.onClick.AddListener(() => StartMatch(pendingMode, 3));
 
             if (size5x5Button)
-                size5x5Button.onClick.AddListener(() => StartMatch(GameMode.Local, 5));
+                size5x5Button.onClick.AddListener(() => StartMatch(pendingMode, 5));
 
             if (size7x7Button)
-                size7x7Button.onClick.AddListener(() => StartMatch(GameMode.Local, 7));
+                size7x7Button.onClick.AddListener(() => StartMatch(pendingMode, 7));
 
             // Các nút Back quay về Main Panel
             foreach (var btn in backToMainButtons)
