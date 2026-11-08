@@ -1,96 +1,77 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 namespace Khang
 {
     /// <summary>
-    /// Điều khiển màn hình giới thiệu (Intro / Splash Screen).
-    /// Tự động hiển thị Logo mờ dần vào (Fade in), giữ trong vài giây rồi mờ dần ra (Fade out)
-    /// và chuyển sang MainMenuScene.
-    /// Cho phép người chơi click chuột hoặc bấm phím bất kỳ để bỏ qua (Skip).
+    /// Điều khiển màn hình Loading / Intro với thanh Slider tiến trình.
+    /// Tải bất đồng bộ (Async) sang MainMenuScene và cập nhật thanh Slider mượt mà từ 0% đến 100%.
     /// </summary>
     public class IntroController : MonoBehaviour
     {
         [Header("Cấu hình chuyển Scene")]
         [SerializeField] private string nextSceneName = "MainMenuScene";
-        [SerializeField] private float displayDuration = 2.0f; // Thời gian giữ logo (giây)
+        [SerializeField] private float minimumLoadingTime = 2.0f; // Thời gian chạy thanh loading (giây)
 
-        [Header("Hiệu ứng mờ dần (Tùy chọn)")]
-        [SerializeField] private CanvasGroup logoCanvasGroup;
-        [SerializeField] private float fadeInDuration = 0.8f;
-        [SerializeField] private float fadeOutDuration = 0.8f;
-
-        [Header("Âm thanh Intro (Tùy chọn)")]
-        [SerializeField] private AudioSource audioSource;
-        [SerializeField] private AudioClip introJingle;
-
-        [Header("Tùy chọn Bỏ qua")]
-        [SerializeField] private bool allowSkip = true;
-
-        private bool hasTransitioned = false;
+        [Header("UI Loading")]
+        [SerializeField] private Slider loadingSlider;              // Thanh Slider tiến trình
+        [SerializeField] private TextMeshProUGUI progressText;       // Chữ hiển thị phần trăm (Tùy chọn)
 
         private void Start()
         {
-            if (audioSource != null && introJingle != null)
+            if (loadingSlider != null)
             {
-                audioSource.PlayOneShot(introJingle);
+                loadingSlider.minValue = 0f;
+                loadingSlider.maxValue = 1f;
+                loadingSlider.value = 0f;
             }
 
-            StartCoroutine(IntroSequenceRoutine());
+            StartCoroutine(LoadSceneAsyncRoutine());
         }
 
-        private void Update()
+        private IEnumerator LoadSceneAsyncRoutine()
         {
-            // Bấm chuột hoặc phím bất kỳ để skip qua Intro
-            if (allowSkip && !hasTransitioned && (Input.anyKeyDown || Input.GetMouseButtonDown(0)))
-            {
-                StopAllCoroutines();
-                GoToNextScene();
-            }
-        }
+            // Bắt đầu nạp scene nền
+            AsyncOperation operation = SceneManager.LoadSceneAsync(nextSceneName);
+            operation.allowSceneActivation = false; // Tạm dừng chuyển scene cho đến khi thanh chạy đủ 100%
 
-        private IEnumerator IntroSequenceRoutine()
-        {
-            // 1. Hiệu ứng Fade In (Mờ dần hiện lên)
-            if (logoCanvasGroup != null)
+            float timer = 0f;
+
+            while (timer < minimumLoadingTime)
             {
-                logoCanvasGroup.alpha = 0f;
-                float elapsed = 0f;
-                while (elapsed < fadeInDuration)
+                timer += Time.deltaTime;
+
+                // Tiến độ thực tế từ Unity (tối đa 0.9 trước khi activate) kết hợp với thời gian tối thiểu
+                float timeProgress = Mathf.Clamp01(timer / minimumLoadingTime);
+                float unityProgress = Mathf.Clamp01(operation.progress / 0.9f);
+                float currentProgress = Mathf.Min(timeProgress, unityProgress);
+
+                // Cập nhật Slider
+                if (loadingSlider != null)
                 {
-                    elapsed += Time.deltaTime;
-                    logoCanvasGroup.alpha = Mathf.Clamp01(elapsed / fadeInDuration);
-                    yield return null;
+                    loadingSlider.value = currentProgress;
                 }
-                logoCanvasGroup.alpha = 1f;
-            }
 
-            // 2. Giữ màn hình trong một khoảng thời gian
-            yield return new WaitForSeconds(displayDuration);
-
-            // 3. Hiệu ứng Fade Out (Mờ dần biến mất)
-            if (logoCanvasGroup != null)
-            {
-                float elapsed = 0f;
-                while (elapsed < fadeOutDuration)
+                // Cập nhật chữ phần trăm
+                if (progressText != null)
                 {
-                    elapsed += Time.deltaTime;
-                    logoCanvasGroup.alpha = Mathf.Clamp01(1f - (elapsed / fadeOutDuration));
-                    yield return null;
+                    progressText.text = $"Loading... {Mathf.RoundToInt(currentProgress * 100f)}%";
                 }
-                logoCanvasGroup.alpha = 0f;
+
+                yield return null;
             }
 
-            // 4. Chuyển sang Main Menu
-            GoToNextScene();
-        }
+            // Đảm bảo đạt đủ 100%
+            if (loadingSlider != null) loadingSlider.value = 1f;
+            if (progressText != null) progressText.text = "Loading... 100%";
 
-        private void GoToNextScene()
-        {
-            if (hasTransitioned) return;
-            hasTransitioned = true;
-            SceneManager.LoadScene(nextSceneName);
+            yield return new WaitForSeconds(0.2f);
+
+            // Cho phép chuyển sang MainMenuScene
+            operation.allowSceneActivation = true;
         }
     }
 }
