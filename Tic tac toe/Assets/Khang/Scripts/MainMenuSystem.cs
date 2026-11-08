@@ -78,7 +78,7 @@ namespace Khang
         [SerializeField] private Button openSettingsButton;
         [SerializeField] private Button exitButton;
 
-        [Header("Grid Size Buttons (Play Local)")]
+        [Header("Grid Size Buttons (Play Local / Training AI)")]
         [SerializeField] private Button size3x3Button;
         [SerializeField] private Button size5x5Button;
         [SerializeField] private Button size7x7Button;
@@ -123,14 +123,22 @@ namespace Khang
         {
             SetupButtons();
 
-            if (GameConfig.ReturnToMultiplayer)
+            switch (GameConfig.ReturnTarget)
             {
-                GameConfig.ReturnToMultiplayer = false;
-                ChangeState(stateMultiplayer);
-            }
-            else
-            {
-                ChangeState(stateMain);
+                case ReturnTargetPanel.Multiplayer:
+                    GameConfig.ReturnTarget = ReturnTargetPanel.None;
+                    ChangeState(stateMultiplayer);
+                    break;
+
+                case ReturnTargetPanel.GridSize:
+                    GameConfig.ReturnTarget = ReturnTargetPanel.None;
+                    pendingMode = GameConfig.SelectedMode; // Giữ lại chế độ Local hoặc AI
+                    ChangeState(stateGridSize);
+                    break;
+
+                default:
+                    ChangeState(stateMain);
+                    break;
             }
         }
 
@@ -157,11 +165,13 @@ namespace Khang
             }
 
             if (playOnlineButton)
+            {
                 playOnlineButton.onClick.AddListener(() =>
                 {
                     GameConfig.SelectedMode = GameMode.Multiplayer;
                     ChangeState(stateMultiplayer);
                 });
+            }
 
             if (openSettingsButton)
                 openSettingsButton.onClick.AddListener(() => ChangeState(stateSettings));
@@ -187,6 +197,7 @@ namespace Khang
                     btn.onClick.AddListener(() =>
                     {
                         GameConfig.SelectedMode = GameMode.Local;
+                        pendingMode = GameMode.Local;
                         ChangeState(stateMain);
                     });
                 }
@@ -208,6 +219,7 @@ namespace Khang
         public void ShowMainMenu()
         {
             GameConfig.SelectedMode = GameMode.Local;
+            pendingMode = GameMode.Local;
             ChangeState(stateMain);
         }
 
@@ -215,6 +227,12 @@ namespace Khang
         {
             GameConfig.SelectedMode = GameMode.Multiplayer;
             ChangeState(stateMultiplayer);
+        }
+
+        public void ShowGridSizeMenu(GameMode mode)
+        {
+            pendingMode = mode;
+            ChangeState(stateGridSize);
         }
 
         public void QuitApp()

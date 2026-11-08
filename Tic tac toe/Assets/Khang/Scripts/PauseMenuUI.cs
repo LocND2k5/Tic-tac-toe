@@ -49,14 +49,14 @@ namespace Khang
             if (resumeButton   != null) resumeButton.onClick.AddListener(Resume);
             if (restartButton  != null) restartButton.onClick.AddListener(Restart);
             if (menuButton     != null) menuButton.onClick.AddListener(ReturnToMenu);
-            if (settingsButton  != null) settingsButton.onClick.AddListener(OpenSettings);
+            if (settingsButton != null) settingsButton.onClick.AddListener(OpenSettings);
 
             HidePauseMenu();
         }
 
         private void Start()
         {
-            HookMultiplayerLeaveButtons();
+            HookLeaveMatchButtons();
         }
 
         private void Update()
@@ -121,13 +121,13 @@ namespace Khang
             if (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
                 NetworkManager.Singleton.Shutdown();
 
-            GameConfig.ReturnToMultiplayer = false;
+            GameConfig.ReturnTarget = ReturnTargetPanel.None;
             SceneManager.LoadScene(MultiplayerConstants.SCENE_MAIN_MENU);
         }
 
         // ── Helpers ────────────────────────────────────────────────────
 
-        private void HookMultiplayerLeaveButtons()
+        private void HookLeaveMatchButtons()
         {
             Button[] allButtons = FindObjectsByType<Button>(FindObjectsInactive.Include, FindObjectsSortMode.None);
             foreach (var btn in allButtons)
@@ -135,20 +135,25 @@ namespace Khang
                 if (btn == null) continue;
                 if (btn.gameObject.name == "LeaveMatchButton" || btn.gameObject.name == "ReturnButton")
                 {
-                    btn.onClick.AddListener(OnMultiplayerLeaveClicked);
+                    btn.onClick.AddListener(OnLeaveMatchClicked);
                 }
             }
         }
 
-        private void OnMultiplayerLeaveClicked()
+        private void OnLeaveMatchClicked()
         {
             bool isMultiplayer = (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
                                  || GameConfig.SelectedMode == GameMode.Multiplayer;
 
             if (isMultiplayer)
             {
-                GameConfig.ReturnToMultiplayer = true;
+                GameConfig.ReturnTarget = ReturnTargetPanel.Multiplayer;
                 PlayerProfile.OpponentName = "";
+            }
+            else
+            {
+                // Chế độ Local hoặc đánh với máy (AI) quay về màn hình GridSizePanel
+                GameConfig.ReturnTarget = ReturnTargetPanel.GridSize;
             }
         }
 
