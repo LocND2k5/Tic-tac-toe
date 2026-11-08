@@ -325,14 +325,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Khang.SettingsUI
   masterVolumeSlider: {fileID: 480010919}
-  sfxVolumeSlider: {fileID: 0}
-  musicVolumeSlider: {fileID: 0}
-  masterLabel: {fileID: 0}
-  sfxLabel: {fileID: 1998044440}
-  musicLabel: {fileID: 525256687}
-  fullscreenToggle: {fileID: 0}
-  saveButton: {fileID: 0}
-  resetButton: {fileID: 0}
+  sfxVolumeSlider: {fileID: 1367842996}
+  musicVolumeSlider: {fileID: 650557551}
   closeButton: {fileID: 1275815683}
 --- !u!114 &120667032
 MonoBehaviour:
@@ -2670,6 +2664,54 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &880000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 880000001}
+  - component: {fileID: 880000002}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &880000001
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 880000000}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &880000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 880000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 237566972d43797459ca4971ce245ac5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Khang.AudioManager
+  bgmMusic: {fileID: 8300000, guid: f6e797f5110ebb545a8f7e2f16616e00, type: 3}
+  placePieceSFX: {fileID: 8300000, guid: 226c80a105df30a4691ee2697a73e7ef, type: 3}
+  winSFX: {fileID: 8300000, guid: 98e444c50dd5e414e96965dea3bf3669, type: 3}
+  tieSFX: {fileID: 8300000, guid: d667d8a1a969982459a78b31f60fd341, type: 3}
 --- !u!1 &933301793
 GameObject:
   m_ObjectHideFlags: 0
@@ -4466,11 +4508,9 @@ MonoBehaviour:
   pauseMenuPanel: {fileID: 1187225500}
   settingsUI: {fileID: 120667031}
   resumeButton: {fileID: 838812105}
-  restartButton: {fileID: 0}
+  restartButton: {fileID: 553128088}
   settingsButton: {fileID: 601478984}
-  mainMenuButton: {fileID: 0}
   pauseKey: 27
-  mainMenuSceneName: MainMenuScene
 --- !u!4 &1723093886
 Transform:
   m_ObjectHideFlags: 0
@@ -5559,3 +5599,4 @@ SceneRoots:
   - {fileID: 246569486}
   - {fileID: 1767746351}
   - {fileID: 1723093886}
+  - {fileID: 880000001}

@@ -1,25 +1,22 @@
 using System;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace Khang
 {
     /// <summary>
-    /// Singleton quản lý toàn bộ âm thanh trong game (Nhạc nền và Hiệu ứng SFX).
+    /// Quản lý âm thanh dành riêng cho màn chơi (SampleScene).
+    /// Chỉ tồn tại trong SampleScene — khi thoát ra Main Menu, âm thanh tự động dừng.
     /// Tự động đồng bộ âm lượng với SettingsManager và phát âm thanh khi chơi cờ.
-    /// Tồn tại xuyên suốt các Scene nhờ DontDestroyOnLoad.
     /// </summary>
     public class AudioManager : MonoBehaviour
     {
         public static AudioManager Instance { get; private set; }
 
-        [Header("Audio Sources (Để trống sẽ tự tạo)")]
-        [SerializeField] private AudioSource musicSource;
-        [SerializeField] private AudioSource sfxSource;
+        private AudioSource musicSource;
+        private AudioSource sfxSource;
 
         [Header("Audio Clips (Kéo file nhạc/âm thanh vào đây)")]
         [SerializeField] private AudioClip bgmMusic;
-        [SerializeField] private AudioClip buttonClickSFX;
         [SerializeField] private AudioClip placePieceSFX;
         [SerializeField] private AudioClip winSFX;
         [SerializeField] private AudioClip tieSFX;
@@ -32,53 +29,43 @@ namespace Khang
                 return;
             }
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            // KHÔNG dùng DontDestroyOnLoad: Chỉ sống trong SampleScene
 
-            // Tự khởi tạo AudioSource nếu chưa kéo trong Inspector
-            if (musicSource == null)
-            {
-                musicSource = gameObject.AddComponent<AudioSource>();
-                musicSource.loop = true;
-                musicSource.playOnAwake = false;
-            }
+            SettingsManager.EnsureInstance();
 
-            if (sfxSource == null)
-            {
-                sfxSource = gameObject.AddComponent<AudioSource>();
-                sfxSource.loop = false;
-                sfxSource.playOnAwake = false;
-            }
-        }
+            var audioSources = GetComponents<AudioSource>();
+            musicSource = audioSources.Length > 0 ? audioSources[0] : gameObject.AddComponent<AudioSource>();
+            sfxSource = audioSources.Length > 1 ? audioSources[1] : gameObject.AddComponent<AudioSource>();
 
-        private void OnEnable()
-        {
-            SceneManager.sceneLoaded += HandleSceneLoaded;
-        }
-
-        private void OnDisable()
-        {
-            SceneManager.sceneLoaded -= HandleSceneLoaded;
-            UnsubscribeSettingsEvents();
-            UnsubscribeGameEvents();
+            musicSource.loop = true;
+            musicSource.playOnAwake = false;
+            sfxSource.loop = false;
+            sfxSource.playOnAwake = false;
         }
 
         private void Start()
         {
             SubscribeSettingsEvents();
 
-            // Phát nhạc nền lặp lại
+            // Phát nhạc nền của màn chơi
             if (bgmMusic != null)
             {
                 PlayMusic(bgmMusic);
             }
 
-            // Đăng ký sự kiện nếu GameManager đã có sẵn trong Scene
+            // Đăng ký sự kiện âm thanh trận đấu
             SubscribeGameEvents();
         }
 
-        private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+        private void OnDestroy()
         {
-            SubscribeGameEvents();
+            if (Instance == this)
+            {
+                Instance = null;
+            }
+
+            UnsubscribeSettingsEvents();
+            UnsubscribeGameEvents();
         }
 
         // ── KẾT NỐI VỚI SETTINGSMANAGER ─────────────────────────────────
@@ -93,6 +80,12 @@ namespace Khang
                 // Áp dụng mức âm lượng đã lưu
                 UpdateMusicVolume(SettingsManager.Instance.MusicVolume);
                 UpdateSFXVolume(SettingsManager.Instance.SFXVolume);
+            }
+            else
+            {
+                // Mặc định nếu chạy trực tiếp SampleScene không qua Main Menu
+                UpdateMusicVolume(0.5f);
+                UpdateSFXVolume(1f);
             }
         }
 
@@ -121,7 +114,6 @@ namespace Khang
         {
             if (GameManager.Instance == null) return;
 
-            UnsubscribeGameEvents(); // Tránh trùng lặp đăng ký
             GameManager.Instance.OnClickedOnGridPosition += GameManager_OnClickedOnGridPosition;
             GameManager.Instance.OnGameWin               += GameManager_OnGameWin;
             GameManager.Instance.OnGameTied              += GameManager_OnGameTied;
@@ -130,6 +122,7 @@ namespace Khang
         private void UnsubscribeGameEvents()
         {
             if (GameManager.Instance == null) return;
+
             GameManager.Instance.OnClickedOnGridPosition -= GameManager_OnClickedOnGridPosition;
             GameManager.Instance.OnGameWin               -= GameManager_OnGameWin;
             GameManager.Instance.OnGameTied              -= GameManager_OnGameTied;
@@ -170,7 +163,6 @@ namespace Khang
             sfxSource.PlayOneShot(clip);
         }
 
-        public void PlayButtonClick() => PlaySFX(buttonClickSFX);
         public void PlayPlacePiece()  => PlaySFX(placePieceSFX);
         public void PlayWin()         => PlaySFX(winSFX);
         public void PlayTie()         => PlaySFX(tieSFX);

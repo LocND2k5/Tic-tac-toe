@@ -76,6 +76,7 @@ namespace Khang
         [SerializeField] private Button playAIButton;
         [SerializeField] private Button playOnlineButton;
         [SerializeField] private Button openSettingsButton;
+        [SerializeField] private Button exitButton;
 
         [Header("Grid Size Buttons (Play Local)")]
         [SerializeField] private Button size3x3Button;
@@ -135,6 +136,9 @@ namespace Khang
             if (openSettingsButton)
                 openSettingsButton.onClick.AddListener(() => ChangeState(stateSettings));
 
+            if (exitButton)
+                exitButton.onClick.AddListener(QuitApp);
+
             // Nút chọn kích thước bàn cờ và vào trận trực tiếp
             if (size3x3Button)
                 size3x3Button.onClick.AddListener(() => StartMatch(GameMode.Local, 3));
@@ -173,6 +177,9 @@ namespace Khang
         public void QuitApp()
         {
             Application.Quit();
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
         }
 
         // =========================================================================
