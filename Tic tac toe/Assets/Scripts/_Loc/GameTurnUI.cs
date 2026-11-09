@@ -16,6 +16,29 @@ public class GameTurnUI : MonoBehaviour
 
     private RectTransform crossIconRect;
     private RectTransform circleIconRect;
+    private float textOffsetY;
+    private bool hasTextOffsetY;
+
+    private float arrowOffsetY;
+    private const float ArrowGap = 5f; // khoảng hở giữa mũi tên và icon
+
+    // Mũi tên đứng ngay bên trái icon của nó, nên khi dời icon mũi tên đi theo
+    private void PlaceArrowBesideIcon(GameObject arrow, RectTransform icon)
+    {
+        if (arrow == null || icon == null) return;
+
+        RectTransform arrowRect = arrow.GetComponent<RectTransform>();
+        if (arrowRect == null) return;
+
+        float iconHalf = icon.rect.width * icon.lossyScale.x * 0.5f;
+        float arrowHalf = arrowRect.rect.width * arrowRect.lossyScale.x * 0.5f;
+        float gap = ArrowGap * icon.lossyScale.x;
+
+        Vector3 pos = arrowRect.position;
+        pos.x = icon.position.x - iconHalf - arrowHalf - gap;
+        pos.y = icon.position.y + arrowOffsetY;
+        arrowRect.position = pos;
+    }
 
     private RectTransform FindChildRect(string childName)
     {
@@ -31,6 +54,23 @@ public class GameTurnUI : MonoBehaviour
         crossIconRect = FindChildRect("CrossIcon");
         circleIconRect = FindChildRect("CircleIcon");
 
+        // Khoảng cách dọc giữa mũi tên O và icon O (lấy làm chuẩn cho cả hai mũi tên)
+        RectTransform circleArrowRect = circleArrow != null ? circleArrow.GetComponent<RectTransform>() : null;
+        if (circleArrowRect != null && circleIconRect != null)
+        {
+            arrowOffsetY = circleArrowRect.position.y - circleIconRect.position.y;
+        }
+
+        // Ghi nhớ khoảng cách dọc giữa chữ và icon gần nó nhất, đúng như bạn đã đặt trong Editor
+        if (youTextRect != null && crossIconRect != null && circleIconRect != null)
+        {
+            float toCross = Mathf.Abs(youTextRect.position.x - crossIconRect.position.x);
+            float toCircle = Mathf.Abs(youTextRect.position.x - circleIconRect.position.x);
+            RectTransform nearest = toCross <= toCircle ? crossIconRect : circleIconRect;
+            textOffsetY = youTextRect.position.y - nearest.position.y;
+            hasTextOffsetY = true;
+        }
+
         GameManager.Instance.OnCurrentPlayablePlayerTypeChanged += GameManager_OnCurrentPlayablePlayerTypeChanged;
         GameManager.Instance.OnRematch += GameManager_OnRematch;
 
@@ -38,7 +78,8 @@ public class GameTurnUI : MonoBehaviour
         UpdateTurnUI();
     }
 
-    // Multiplayer: chữ "YOU" được thay bằng tên người chơi đang tới lượt
+    // Multiplayer: chữ "YOU" được thay bằng tên người chơi đang tới lượt.
+    // Training (đấu máy): "YOU" khi tới lượt bạn, "BOT" khi tới lượt máy.
     private string crossName, circleName;
     private bool nameInYouText;
     private TMP_Text youText;
@@ -53,78 +94,42 @@ public class GameTurnUI : MonoBehaviour
             crossName = isHost ? PlayerProfile.Name : opponent;
             circleName = isHost ? opponent : PlayerProfile.Name;
             Debug.Log($"[GameTurnUI] isHost={isHost} localName='{PlayerProfile.Name}' opponentName='{PlayerProfile.OpponentName}'");
-
-            if (youTextRect != null)
-            {
-                youText = youTextRect.GetComponentInChildren<TMP_Text>(true);
-                youLegacyText = youTextRect.GetComponentInChildren<UnityEngine.UI.Text>(true);
-            }
-
-            if (youText != null)
-            {
-                nameInYouText = true;
-                youText.textWrappingMode = TextWrappingModes.NoWrap;
-                youText.overflowMode = TextOverflowModes.Overflow;
-                youText.enableAutoSizing = true;
-                youText.fontSizeMin = 8;
-                youText.fontSizeMax = youText.fontSize;
-            }
-            else if (youLegacyText != null)
-            {
-                // Scene đang dùng UI Text cũ (không phải TextMeshPro)
-                nameInYouText = true;
-                youLegacyText.horizontalOverflow = HorizontalWrapMode.Overflow;
-                youLegacyText.resizeTextForBestFit = true;
-                youLegacyText.resizeTextMinSize = 8;
-                youLegacyText.resizeTextMaxSize = youLegacyText.fontSize;
-            }
+            PrepareYouText();
         }
         else if (Khang.Core.GameConfig.SelectedMode == Khang.Core.GameMode.AI)
         {
-            CreateNamesLabel("Computer");
+            crossName = "YOU";
+            circleName = "BOT";
+            PrepareYouText();
         }
     }
 
-    // Training: hiển thị tên 2 người chơi bên dưới khung lượt chơi
-    private void CreateNamesLabel(string opponentName)
+    private void PrepareYouText()
     {
-        crossName = PlayerProfile.Name;
-        circleName = opponentName;
-
-        // Đặt tên ngay bên dưới khung lượt chơi (panel chứa mũi tên và chữ YOU) để không đè lên nó
-        RectTransform panel = null;
-        if (youTextRect != null) panel = youTextRect.parent as RectTransform;
-        if (panel == null) panel = transform as RectTransform;
-
-        GameObject go = new GameObject("PlayerNamesLabel", typeof(RectTransform));
-        RectTransform rt = (RectTransform)go.transform;
-        if (panel != null)
+        if (youTextRect != null)
         {
-            go.transform.SetParent(panel, false);
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0, -6);
+            youText = youTextRect.GetComponentInChildren<TMP_Text>(true);
+            youLegacyText = youTextRect.GetComponentInChildren<UnityEngine.UI.Text>(true);
         }
-        else
-        {
-            Canvas canvas = FindFirstObjectByType<Canvas>();
-            if (canvas == null) { Destroy(go); return; }
-            go.transform.SetParent(canvas.rootCanvas.transform, false);
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
-            rt.pivot = new Vector2(0.5f, 1f);
-            rt.anchoredPosition = new Vector2(0, -90);
-        }
-        rt.sizeDelta = new Vector2(500, 36);
 
-        TextMeshProUGUI label = go.AddComponent<TextMeshProUGUI>();
-        label.text = $"X: {crossName}  vs  O: {circleName}";
-        label.fontSize = 20;
-        label.enableAutoSizing = true;
-        label.fontSizeMin = 10;
-        label.fontSizeMax = 20;
-        label.fontStyle = FontStyles.Bold;
-        label.alignment = TextAlignmentOptions.Center;
-        label.raycastTarget = false;
+        if (youText != null)
+        {
+            nameInYouText = true;
+            youText.textWrappingMode = TextWrappingModes.NoWrap;
+            youText.overflowMode = TextOverflowModes.Overflow;
+            youText.enableAutoSizing = true;
+            youText.fontSizeMin = 8;
+            youText.fontSizeMax = youText.fontSize;
+        }
+        else if (youLegacyText != null)
+        {
+            // Scene đang dùng UI Text cũ (không phải TextMeshPro)
+            nameInYouText = true;
+            youLegacyText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            youLegacyText.resizeTextForBestFit = true;
+            youLegacyText.resizeTextMinSize = 8;
+            youLegacyText.resizeTextMaxSize = youLegacyText.fontSize;
+        }
     }
 
     private void OnDestroy()
@@ -155,6 +160,9 @@ public class GameTurnUI : MonoBehaviour
         {
             crossArrow.SetActive(currentPlayerType == GameManager.PlayerType.Cross);
             circleArrow.SetActive(currentPlayerType == GameManager.PlayerType.Circle);
+
+            PlaceArrowBesideIcon(crossArrow, crossIconRect);
+            PlaceArrowBesideIcon(circleArrow, circleIconRect);
         }
 
         // Position the "YOU" text badge to clearly identify local player role
@@ -168,6 +176,7 @@ public class GameTurnUI : MonoBehaviour
             {
                 Vector3 worldPos = youTextRect.position;
                 worldPos.x = targetIcon.position.x;
+                if (hasTextOffsetY) worldPos.y = targetIcon.position.y + textOffsetY;
                 youTextRect.position = worldPos;
             }
             else
